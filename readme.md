@@ -17,14 +17,6 @@ A GitHub action to build **The Machinery**'s one click build tool as well as the
 *How to build:*
 
 ```yaml
-    - name: Checkout tmbuild-action repo
-      uses: actions/checkout@v2
-      with:
-        path: tmbuild-action
-        repository: simon-ourmachinery/tmbuild-action
-        token: ${{ secrets.TMBUILD_ACTION_TOKEN }}
-    - name: download and install clang and build-essential
-      run:  sudo apt install build-essential lld clang -y
     - name: run tmbuild via action
       uses: ./tmbuild-action
       id: tmbuild
