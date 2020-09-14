@@ -12,7 +12,7 @@ A GitHub action to build **The Machinery**'s one click build tool as well as the
 - You can store the build/package artifacts
 
 
-## example:
+## Examples:
 
 *How to build:*
 
