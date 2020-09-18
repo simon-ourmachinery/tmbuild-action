@@ -17,15 +17,13 @@ async function build_tmbuild(buildconfig, ending) {
     const path = utils.getLibPath(utils.parseLibsFile(utils.getInput("libjsonpath")), "bearssl")
     try {
         utils.info("remove all .so files");
-        await exec.exec(`ls`);
-        await exec.exec(`ls ${path}/build/`);
-        await tools.rm(`${path}/build/*.so`)
+        await tools.rm(`${path}/build/libbearssl.so`)
     } catch (e) {
         utils.info(e.message);
     }
     try {
         utils.info("remove all .dll");
-        await tools.rm(`${path}/build/*.dll`)
+        await tools.rm(`${path}/build/bearssl.dll`)
     } catch (e) {
         utils.info(e.message);
     }

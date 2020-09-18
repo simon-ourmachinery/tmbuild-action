@@ -22,6 +22,12 @@ async function rm(file, tool) {
 
 exports.rm = rm;
 
+async function mv(oldn, newn) {
+    await e.exec(`mv ${oldn} ${newn}`);
+}
+
+exports.mv = mv;
+
 /**
  * Downloads a tool either from cache or from repo depends on if cache shall be used or if its caches
  * @param tool name of the tool
