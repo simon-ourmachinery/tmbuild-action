@@ -17,6 +17,8 @@ async function build_tmbuild(buildconfig, ending) {
     const path = utils.getLibPath(utils.parseLibsFile(utils.getInput("libjsonpath")), "bearssl")
     try {
         utils.info("remove all .so files");
+        await exec.exec(`ls`);
+        await exec.exec(`ls ${path}/build/`);
         await tools.rm(`${path}/build/*.so`)
     } catch (e) {
         utils.info(e.message);
