@@ -16,6 +16,12 @@ async function chmod(file) {
 exports.chmod = chmod;
 
 
+async function rm(file, tool) {
+    await exec.exec(`rm ${file}`);
+}
+
+exports.rm = rm;
+
 /**
  * Downloads a tool either from cache or from repo depends on if cache shall be used or if its caches
  * @param tool name of the tool
@@ -33,7 +39,7 @@ async function install(tool, alternativeRepo) {
     utils.debug(`toolUrl: ${toolUrl}`);
     utils.info(`could not find ${tool} in tools cache downloads it from ${toolUrl}`);
     const zipPath = await tc.downloadTool(`${toolUrl}`);
-    let extractedFolder = await tc.extractZip(zipPath, './lib');
+    let extractedFolder = await tc.extractZip(zipPath, utils.getInput("libpath"));
     utils.info(`extractedFolder ${tool} path: ${extractedFolder}`);
     core.endGroup();
     return extractedFolder;

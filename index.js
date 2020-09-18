@@ -11,8 +11,20 @@ const tools = require("./internal/tools");
 const build = require("./internal/build");
 const cache = require("./internal/cache");
 const os = require("os");
+const fs = require('fs');
 
 async function build_tmbuild(buildconfig, ending) {
+    const path = utils.getLibPath(utils.parseLibsFile(utils.getInput("libjsonpath")), "bearssl")
+    try {
+        utils.rm(`${path}/*.so`)
+    } catch (e) {
+        utils.info(e.message);
+    }
+    try {
+        utils.rm(`${path}/*.dll`)
+    } catch (e) {
+        utils.info(e.message);
+    }
     await build.make();
     await build.tmbuild();
     await utils.cp(`./bin/${buildconfig}/tmbuild${ending}`, `./bin/tmbuild/${buildconfig}`);
