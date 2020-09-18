@@ -75,7 +75,7 @@ async function exec(tool, args) {
     } catch (e) {
         utils.parseForError(myOutput);
         utils.parseForError(myError);
-        utils.info(`$[${tool} ${args}]>>\n${myOutput}\n`);
+        utils.info(`$[${tool} ${args}]>>\n${myOutput}\n${myError}\n`);
         throw new Error(e.message);
     }
     core.endGroup();
