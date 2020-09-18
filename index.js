@@ -12,7 +12,7 @@ const build = require("./internal/build");
 const cache = require("./internal/cache");
 const os = require("os");
 
-async function build_tmbuild(buildconfig, ending){
+async function build_tmbuild(buildconfig, ending) {
     await build.make();
     await build.tmbuild();
     await utils.cp(`./bin/${buildconfig}/tmbuild${ending}`, `./bin/tmbuild/${buildconfig}`);
@@ -28,24 +28,25 @@ async function build_tmbuild(buildconfig, ending){
         const cacheLibs = utils.getInput("cacheLibs") === 'true';
         const useCache = utils.getInput("useCache") === 'true';
         const cacheVersion = utils.getInput("cacheVersion");
-        const ending = (os.platform() == "win32") ? ".exe" : "";  
+        const ending = (os.platform() == "win32") ? ".exe" : "";
         // if true package and cache at the end libs and tmbuild      
         let libCacheIsDirty = false;
         let tmbuildCacheIsDirty = false;
         // downloads the cache and if cache does not exist it will install it:
-        if(useCache){
+        if (useCache) {
             // download cached libs (dependencies)
-            if (cacheLibs){
-                try{
+            if (cacheLibs) {
+                try {
                     core.startGroup("[tmbuild-action] get cached dependencies");
-                        await cache.get("libs", cacheVersion);
+                    await cache.get("libs", cacheVersion);
                     core.endGroup();
-                }catch(e){
+                } catch (e) {
                     utils.info(e.message);
+                    await tools.install("bearssl");
                     await tools.install("premake5");
                     if (os.platform() != "win32") {
                         const libjson = utils.parseLibsFile(utils.getInput("libjsonpath"));
-                        const toolObject =utils.getLib(libjson,"premake5");
+                        const toolObject = utils.getLib(libjson, "premake5");
                         const toolname = toolObject.lib;
                         await tools.chmod(`${libpath}/${toolname}/premake5`);
                     }
@@ -53,10 +54,10 @@ async function build_tmbuild(buildconfig, ending){
                 }
             }
             // downloads cached tmbuild version
-            if (!buildtmbuild){
-                try{
+            if (!buildtmbuild) {
+                try {
                     core.startGroup(`[tmbuild-action] get cached tmbuild-${buildconfig}`);
-                        await cache.get(`tmbuild`, cacheVersion);
+                    await cache.get(`tmbuild`, cacheVersion);
                     core.endGroup();
                 } catch (e) {
                     utils.info(e.message);
@@ -67,14 +68,14 @@ async function build_tmbuild(buildconfig, ending){
         }
 
         if (useCache && tmbuildCacheIsDirty) {
-            await cache.set(`./bin/tmbuild/${buildconfig}`, `tmbuild`,cacheVersion);
+            await cache.set(`./bin/tmbuild/${buildconfig}`, `tmbuild`, cacheVersion);
         }
 
         if (buildtmbuild && !tmbuildCacheIsDirty) {
-            await build_tmbuild(buildconfig,ending);
+            await build_tmbuild(buildconfig, ending);
         }
 
-        if (canBuild){
+        if (canBuild) {
             await build.tm(utils.getInput("package"));
         }
 
@@ -88,23 +89,22 @@ async function build_tmbuild(buildconfig, ending){
         const year = currentDate.getFullYear();
         const now = `${date}-${month}-${year}`;
 
-        if (utils.getInput("artifact") === 'true'){
+        if (utils.getInput("artifact") === 'true') {
             core.startGroup(`[tmbuild-action] store artifacts`);
-                await tools.storeFolder(`bin-${buildconfig}-${now}`, `./bin/${buildconfig}`);
-                await tools.storeFolder(`build-${buildconfig}-${now}`, `./build`);
+            await tools.storeFolder(`bin-${buildconfig}-${now}`, `./bin/${buildconfig}`);
+            await tools.storeFolder(`build-${buildconfig}-${now}`, `./build`);
             core.endGroup();
         }
 
-        if (utils.getInput("package").length != 0 && packageArtifact)
-        {
+        if (utils.getInput("package").length != 0 && packageArtifact) {
             core.startGroup(`[tmbuild-action] store package artifacts`);
-                await tools.storeFile(`package-${buildconfig}-${now}`, `./build/*.zip`);
+            await tools.storeFile(`package-${buildconfig}-${now}`, `./build/*.zip`);
             core.endGroup()
-        }else{
+        } else {
             utils.info("info: packaged project but did not store the artifacts because `packageArtifact` is false");
         }
 
-    }catch(e){
+    } catch (e) {
         core.setFailed(e.message);
     }
 })();
