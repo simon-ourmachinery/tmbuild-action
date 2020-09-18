@@ -18,6 +18,7 @@ async function build_tmbuild(buildconfig, ending) {
     try {
         utils.info("remove all .so files");
         utils.rm(`${path}/*.so`)
+        exec.exec(`ls ${path}`);
     } catch (e) {
         utils.info(e.message);
     }
