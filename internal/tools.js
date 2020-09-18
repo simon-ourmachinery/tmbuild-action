@@ -17,7 +17,7 @@ exports.chmod = chmod;
 
 
 async function rm(file, tool) {
-    await exec.exec(`rm ${file}`);
+    await e.exec(`rm ${file}`);
 }
 
 exports.rm = rm;
