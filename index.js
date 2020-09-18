@@ -13,7 +13,6 @@ const cache = require("./internal/cache");
 const os = require("os");
 
 async function build_tmbuild(buildconfig, ending) {
-    utils.info("build tmbuild");
     await build.make();
     await build.tmbuild();
     await utils.cp(`./bin/${buildconfig}/tmbuild${ending}`, `./bin/tmbuild/${buildconfig}`);
