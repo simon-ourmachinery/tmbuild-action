@@ -65,6 +65,15 @@ async function build_tmbuild(buildconfig, ending) {
                     tmbuildCacheIsDirty = true;
                 }
             }
+        } else {
+            await tools.install("bearssl");
+            await tools.install("premake5");
+            if (os.platform() != "win32") {
+                const libjson = utils.parseLibsFile(utils.getInput("libjsonpath"));
+                const toolObject = utils.getLib(libjson, "premake5");
+                const toolname = toolObject.lib;
+                await tools.chmod(`${libpath}/${toolname}/premake5`);
+            }
         }
 
         if (useCache && tmbuildCacheIsDirty) {
