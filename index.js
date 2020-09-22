@@ -14,19 +14,6 @@ const os = require("os");
 const fs = require('fs');
 
 async function build_tmbuild(buildconfig, ending) {
-    const path = utils.getLibPath(utils.parseLibsFile(utils.getInput("libjsonpath")), "bearssl")
-    try {
-        utils.info("remove all .so files");
-        await tools.rm(`${path}/build/libbearssl.so`)
-    } catch (e) {
-        utils.info(e.message);
-    }
-    try {
-        utils.info("remove all .dll");
-        await tools.rm(`${path}/build/bearssl.dll`)
-    } catch (e) {
-        utils.info(e.message);
-    }
     await build.make();
     await build.tmbuild();
     await utils.cp(`./bin/${buildconfig}/tmbuild${ending}`, `./bin/tmbuild/${buildconfig}`);
