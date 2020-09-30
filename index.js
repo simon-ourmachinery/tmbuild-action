@@ -33,6 +33,8 @@ async function build_tmbuild(buildconfig, ending) {
         // if true package and cache at the end libs and tmbuild      
         let libCacheIsDirty = false;
         let tmbuildCacheIsDirty = false;
+        // artifact
+        const packageArtifact = utils.getInput("packageArtifact") === 'true';
         // downloads the cache and if cache does not exist it will install it:
         if (useCache) {
             // download cached libs (dependencies)
