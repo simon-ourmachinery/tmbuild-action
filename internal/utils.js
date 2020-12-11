@@ -5,7 +5,7 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 
 
-function info(msg){
+function info(msg) {
     core.info(`[tmbuild-action] ${msg}`);
 }
 exports.info = info;
@@ -24,7 +24,7 @@ exports.error = warning;
 
 
 
-async function cp(src,dest){
+async function cp(src, dest) {
     core.startGroup(`[tmbuild-action] copy files src: ${src} dest: ${dest}`);
     if (os.platform() == "win32") {
         await exec.exec(`powershell.exe New-Item -Path "${dest}" -ItemType Directory -Force`)
@@ -35,12 +35,12 @@ async function cp(src,dest){
     }
     core.endGroup();
 }
-exports.cp =cp;
+exports.cp = cp;
 async function cpDir(src, dest) {
     if (os.platform() == "win32") {
-        await cp(`${src}/*`,dest);
+        await cp(`${src}/*`, dest);
     } else {
-        await cp(src,dest);
+        await cp(src, dest);
     }
 }
 exports.cpDir = cpDir;
@@ -93,15 +93,15 @@ function parseForError(content) {
         } else {
             return content;
         }
-    } catch{
+    } catch {
         return content;
     }
 }
 
-function parseLibsFile(libpath){
-    if(fs.existsSync(`${libpath}/libs.json`)){
+function parseLibsFile(libpath) {
+    if (fs.existsSync(`${libpath}/libs.json`)) {
         return JSON.parse(fs.readFileSync(`${libpath}/libs.json`));
-    }else{
+    } else {
         throw new Error(`cannot load libfile: ${libpath}/libs.json`);
     }
 }
@@ -128,13 +128,17 @@ function getLib(libjson, lib) {
 
 
 function getLibPath(libjson, lib) {
-    if(lib != "tmbuild"){
+    if (lib != "tmbuild") {
         const libobject = getLib(libjson, lib);
         const libfolder = getInput("libpath");
         return `${libfolder}/${libobject.lib}`;
-    }else{
+    } else {
         const buildconfig = getInput("buildconfig");
-        return `./bin/tmbuild/${buildconfig}`;
+        if (os.platform() != "linux") {
+            return `./bin/tmbuild/${buildconfig}`;
+        } else {
+            return `xvfb-run --auto-servernum ./bin/tmbuild/${buildconfig}`;
+        }
     }
 }
 
@@ -143,7 +147,7 @@ const args = process.argv.slice(2);
 let inputs = null;
 let isDebug = false;
 if (args.length >= 1 && args[0] == "debug") {
-    isDebug= true;
+    isDebug = true;
     process.env.RUNNER_TOOL_CACHE = "./cache";
     process.env.RUNNER_TEMP = "./tmp";
     process.env.RUNNER_DEBUG = "1";
@@ -154,8 +158,8 @@ if (args.length >= 1 && args[0] == "debug") {
     }
 }
 
-function getInput(key){
-    if (isDebug){
+function getInput(key) {
+    if (isDebug) {
         return inputs[key].default;
     }
     return core.getInput(key);
