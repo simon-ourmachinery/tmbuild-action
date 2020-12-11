@@ -134,11 +134,7 @@ function getLibPath(libjson, lib) {
         return `${libfolder}/${libobject.lib}`;
     } else {
         const buildconfig = getInput("buildconfig");
-        if (os.platform() != "linux") {
-            return `./bin/tmbuild/${buildconfig}`;
-        } else {
-            return `xvfb-run --auto-servernum ./bin/tmbuild/${buildconfig}`;
-        }
+        return `./bin/tmbuild/${buildconfig}`;
     }
 }
 

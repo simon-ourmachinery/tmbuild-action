@@ -81,7 +81,11 @@ async function exec(tool, args) {
         const toolCall = `${toolPath}/${tool}${ending}`;
         if (!fs.existsSync(toolCall)) throw new Error(`Error: Could not find ${tool} here: ${toolCall}`);
         await chmod(toolCall);
-        await e.exec(`${toolCall} ${args}`, [], options);
+        if (os.platform() == "linux") {
+            await e.exec(`xvfb-run --auto-servernum ${toolCall} ${args}`, [], options);
+        } else {
+            await e.exec(`${toolCall} ${args}`, [], options);
+        }
         utils.parseForError(myOutput);
         utils.info(`$[${toolCall} ${args}]>>\n${myOutput}\n`);
     } catch (e) {
