@@ -17,7 +17,7 @@ inputs:
     default: ""
   buildtmbuild:
       description: 'Will build tmbuild itself'
-      default: false
+      default: true
   # config optional:
   libjsonpath:
       description: 'path to libs.json'
