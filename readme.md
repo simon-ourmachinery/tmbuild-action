@@ -44,7 +44,7 @@ A GitHub action to build **The Machinery**'s one click build tool as well as the
   - `buildconfig: [Debug|Release] (default: Debug)` 
   - `build: [true|false] (default: true)` If set to true than it will build the engine.
   - `package: [string value of a package.json] (default: not set)` If set with a valid package file the action will package the engine
-  - `buildtmbuild: [true|false] (default: false)` Will build tmbuild. If `useCache: true` and there is *no* tmbuild in the cache it will build tmbuild in any case and cache it. If no cache is being used there will be an error
+  - `buildtmbuild: [true|false] (default: true)` Will build tmbuild. If `useCache: true` and there is *no* tmbuild in the cache it will build tmbuild in any case and cache it. If no cache is being used there will be an error
 - Config optionals:
   - `libjsonpath: [string path to engines lib json] (default: ./)`
   - `libpath: [string path to where the dependencies shall be stored] (default: ./lib` * should be the same value as the TM_LIB_DIR*
