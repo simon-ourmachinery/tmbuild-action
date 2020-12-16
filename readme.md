@@ -1,12 +1,13 @@
 # tmbuild-action
 
-A GitHub action to build **The Machinery**'s one click build tool as well as the engine itself. This action will cache all depencies as well as the build tool itself if required. It also allowes to create build artifacts and to pack the engine at the end.
+A GitHub action to build **The Machinery**'s one click build tool as well as the engine itself. This action will cache all depencies as well as the build tool itself if required. It also allowes to create build artifacts and to pack the engine or you plugin at the end.
 
 ## Features
 - Will report errors and warnings via annotations
 - Can caches the dependencies and tmbuild
 - You can build only tmbuild
 - You can build the Engine
+- You can build your plugin.
 - You can define a repositry for the engines dependencies
 - You can package the engine
 - You can store the build/package artifacts
@@ -56,3 +57,7 @@ A GitHub action to build **The Machinery**'s one click build tool as well as the
 - Artifacts settings:
   - `artifacts: [true|false] (default: false)` stores build artifacts: `bin/*` and `build/*` (excluding packages)
   - `packageArtifact: [true|false] (default: false)` stores the artifacts of a package.
+  
+  ## Remarks
+  
+  If your `tmbuild` source code has changed massivly you want want to change the `cacheVersion` so that the action rebuilds `tmbuild` and can cache it better.
