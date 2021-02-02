@@ -88,7 +88,7 @@ async function build_tmbuild(buildconfig, ending) {
         }
 
         if (canBuild) {
-            await build.tm(utils.getInput("package"));
+            await build.tmbuild(utils.getInput("package"));
         }
 
         if (useCache && libCacheIsDirty) {

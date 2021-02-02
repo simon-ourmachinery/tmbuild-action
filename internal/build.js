@@ -70,7 +70,7 @@ async function make() {
 }
 exports.make = make;
 
-async function tm(package) {
+async function tmbuild(package) {
     const buildconfig = utils.getInput("buildconfig");
     const clang = utils.getInput("clang");
     let useclang = (clang === "true") ? "--clang" : "";
@@ -80,4 +80,4 @@ async function tm(package) {
         await tools.exec("tmbuild", `-c ${buildconfig} ${useclang}`);
     }
 }
-exports.tm = tm;
+exports.tmbuild = tmbuild;
