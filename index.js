@@ -15,7 +15,7 @@ const fs = require('fs');
 
 async function build_tmbuild(buildconfig, ending) {
     await build.make();
-    await build.tmbuild();
+    await build.build_tmbuild();
     await utils.cp(`./bin/${buildconfig}/tmbuild${ending}`, `./bin/tmbuild/${buildconfig}`);
 }
 

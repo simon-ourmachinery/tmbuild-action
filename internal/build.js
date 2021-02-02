@@ -11,7 +11,7 @@ const fs = require('fs');
 
 /**
  */
-async function tmbuild(buildconfig) {
+async function build_tmbuild(buildconfig) {
     core.debug(`os: ${os.platform()}`);
     buildconfig = (buildconfig == undefined) ? utils.getInput("buildconfig") : buildconfig;
     if (buildconfig == "") throw Error("No build config is set!");
@@ -39,7 +39,6 @@ async function tmbuild(buildconfig) {
             } else
                 if (os.platform() == "darwin") {
                     await exec.exec(`xcodebuild -project build/tmbuild/tmbuild.xcodeproj -configuration ${buildconfig}`, [], options)
-
                 }
         core.startGroup("[tmbuild-action] build tmbuild")
         utils.info(`Build config: ${buildconfig}`)
@@ -57,7 +56,7 @@ async function tmbuild(buildconfig) {
         throw new Error(e.message);
     }
 }
-exports.tmbuild = tmbuild;
+exports.build_tmbuild = build_tmbuild;
 
 async function make() {
     const tool = "premake5";
