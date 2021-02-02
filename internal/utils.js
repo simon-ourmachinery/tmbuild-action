@@ -47,8 +47,13 @@ async function cpDir(src, dest) {
 exports.cpDir = cpDir;
 
 
+<<<<<<< output
 function seg_fault(str) {
     const regex = /Segmentation fault \(core dumped\)/gm;
+=======
+function find_crash(str) {
+    const regex = /The process '([aA-zZ\\\/\-\.]+)' failed with exit code [0-9]+/gm;
+>>>>>>> aded global error message for output
     let m;
 
     while ((m = regex.exec(str)) !== null) {
@@ -57,6 +62,7 @@ function seg_fault(str) {
             regex.lastIndex++;
         }
 
+<<<<<<< output
         if (m.length >= 2) {
             return true;
         }
@@ -80,6 +86,14 @@ function contains_not_found(str) {
         }
     }
     return false;
+=======
+        // The result can be accessed through the `m`-variable.
+        if (m.length >= 2) {
+            return m[1].trim();
+        }
+    }
+    return null;
+>>>>>>> aded global error message for output
 }
 
 function parseForError(content) {
@@ -95,6 +109,7 @@ function parseForError(content) {
                     regex_tm.lastIndex++;
                 }
                 if (m.length >= 2) {
+<<<<<<< output
                     if (!contains_not_found(content)) {
                         core.error(m[0].trim());
                         result = `\n\nerror:\n${m[0].trim()}\n`
@@ -104,6 +119,16 @@ function parseForError(content) {
                     }
                 } else {
                     result = "tmbuild: failed";
+=======
+                    const crash = find_crash(content);
+                    if (crash != null) {
+                        core.error(`tmbuild: ${crash} crashed`);
+                        global.log_out_content += `error:\ntmbuild: ${crash} crashed\n`
+                    } else {
+                        core.error(m[0].trim());
+                        global.log_out_content += `error:\n${m[0].trim()}\n`
+                    }
+>>>>>>> aded global error message for output
                 }
             }
         } else {
@@ -115,10 +140,17 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.error(`file:${m[1].trim()}\nerror: ${m[2].trim()}\n`)
+<<<<<<< output
                     result = `\n\nfile:\`${m[1].trim()}\`\nerror: \`${m[2].trim()}\`\n`
                 } else {
                     core.error(`${m[0].trim()}\n`)
                     result = `\n\nerror:\n${m[0].trim()}\n`
+=======
+                    global.log_out_content += `error:\nfile:${m[1].trim()}\nerror: ${m[2].trim()}\n`
+                } else {
+                    core.error(`${m[0].trim()}\n`)
+                    global.log_out_content += `error:\n${m[0].trim()}\n`
+>>>>>>> aded global error message for output
                 }
             }
             const regex_war = /(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
@@ -129,10 +161,17 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.warning(`file:${m[1].trim()}\nwarning: ${m[2].trim()}\n`);
+<<<<<<< output
                     result = `\n\nfile:\`${m[1].trim()}\`\nwarning: \`${m[2].trim()}\`\n`
                 } else {
                     core.warning(`${m[0].trim()}\n`)
                     result = `\n\nwarning:\n${m[0].trim()}\n`;
+=======
+                    global.log_out_content += `warning:\nfile:${m[1].trim()}\nwarning: ${m[2].trim()}\n`
+                } else {
+                    core.warning(`${m[0].trim()}\n`)
+                    global.log_out_content += `warning:\n${m[0].trim()}\n`;
+>>>>>>> aded global error message for output
                 }
             }
         }
