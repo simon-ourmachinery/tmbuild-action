@@ -119,14 +119,10 @@ async function build_tmbuild(buildconfig, ending) {
             utils.info("info: packaged project but did not store the artifacts because `packageArtifact` is false");
         }
 
-<<<<<<< output
         core.setOutput('result', global.log_out_content);
-=======
-        core.setOutput(`result`, global.log_out_content);
->>>>>>> aded global error message for output
 
     } catch (e) {
-        core.setOutput('result', `Failure: ${global.log_out_content}`);
+        core.setOutput('result', `${global.log_out_content}`);
         core.setFailed(e.message);
         core.setOutput(`result`, global.log_out_content);
     }
