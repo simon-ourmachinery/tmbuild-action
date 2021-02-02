@@ -47,9 +47,45 @@ async function cpDir(src, dest) {
 exports.cpDir = cpDir;
 
 
+function seg_fault(str) {
+    const regex = /Segmentation fault \(core dumped\)/gm;
+    let m;
+
+    while ((m = regex.exec(str)) !== null) {
+        // This is necessary to avoid infinite loops with zero-width matches
+        if (m.index === regex.lastIndex) {
+            regex.lastIndex++;
+        }
+
+        if (m.length >= 2) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+function contains_not_found(str) {
+    const regex = /tmbuild: No ([aA-zZ\-.]+) executable found./gm;
+    let m;
+
+    while ((m = regex.exec(str)) !== null) {
+        // This is necessary to avoid infinite loops with zero-width matches
+        if (m.index === regex.lastIndex) {
+            regex.lastIndex++;
+        }
+
+        if (m.length >= 2) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function parseForError(content) {
     try {
         let result = null;
+        const has_seg_fault = seg_fault(content);
         if (content.includes("tmbuild:")) {
             // tmbuild error:
             const regex_tm = /^tmbuild:(.*)$/gm;
@@ -59,10 +95,16 @@ function parseForError(content) {
                     regex_tm.lastIndex++;
                 }
                 if (m.length >= 2) {
-                    core.error(m[0].trim());
-                    result = `\n\nerror:\n${m[0].trim()}\n`
+                    if (!contains_not_found(content)) {
+                        core.error(m[0].trim());
+                        result = `\n\nerror:\n${m[0].trim()}\n`
+                    } else {
+                        core.warning(m[0].trim());
+                        result = `\n\warning:\n${m[0].trim()}\n`
+                    }
+                } else {
+                    result = "tmbuild: failed";
                 }
-                result = "tmbuild: failed";
             }
         } else {
             const regex_err = /(.*)error:(.*)|(.*)Error:(.*)|(.*)error :(.*)|(.*)Error :(.*)/gm;
@@ -73,7 +115,7 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.error(`file:${m[1].trim()}\nerror: ${m[2].trim()}\n`)
-                    result = `\n\nfile:${m[1].trim()}\nerror: ${m[2].trim()}\n`
+                    result = `\n\nfile:\`${m[1].trim()}\`\nerror: \`${m[2].trim()}\`\n`
                 } else {
                     core.error(`${m[0].trim()}\n`)
                     result = `\n\nerror:\n${m[0].trim()}\n`
@@ -87,12 +129,16 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.warning(`file:${m[1].trim()}\nwarning: ${m[2].trim()}\n`);
-                    result = `\n\nfile:${m[1].trim()}\nwarning: ${m[2].trim()}\n`
+                    result = `\n\nfile:\`${m[1].trim()}\`\nwarning: \`${m[2].trim()}\`\n`
                 } else {
                     core.warning(`${m[0].trim()}\n`)
                     result = `\n\nwarning:\n${m[0].trim()}\n`;
                 }
             }
+        }
+        if (has_seg_fault) {
+            core.error("Segmentation fault (core dumped)");
+            result = `error: found crash: \`Segmentation fault (core dumped)\`\n${result}\n`;
         }
         return result;
     } catch {
