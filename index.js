@@ -11,7 +11,8 @@ const tools = require("./internal/tools");
 const build = require("./internal/build");
 const cache = require("./internal/cache");
 const os = require("os");
-const fs = require('fs');
+
+global.log_out_content = "";
 
 async function build_tmbuild(buildconfig, ending) {
     await build.make();
@@ -116,7 +117,10 @@ async function build_tmbuild(buildconfig, ending) {
             utils.info("info: packaged project but did not store the artifacts because `packageArtifact` is false");
         }
 
+        core.setOutput('result', global.log_out_content);
+
     } catch (e) {
+        core.setOutput('result', `Failure: ${global.log_out_content}`);
         core.setFailed(e.message);
     }
 })();

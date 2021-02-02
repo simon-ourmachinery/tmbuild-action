@@ -45,12 +45,17 @@ async function build_tmbuild(buildconfig) {
         if (options.silent) {
             utils.info(`\n${myOutput}\n`);
         }
-        utils.parseForError(myOutput);
-        utils.parseForError(myError)
+
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res != null ? res : "";
+        res = utils.parseForError(myError)
+        global.log_out_content += res != null ? res : "";
         core.endGroup();
     } catch (e) {
-        utils.parseForError(myOutput);
-        utils.parseForError(myError)
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res != null ? res : "";
+        res = utils.parseForError(myError)
+        global.log_out_content += res != null ? res : "";
         utils.info(myOutput)
         utils.info(myError)
         throw new Error(e.message);

@@ -86,12 +86,15 @@ async function exec(tool, args) {
         } else {
             await e.exec(`${toolCall} ${args}`, [], options);
         }
-        utils.parseForError(myOutput);
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res != null ? res : "";
         utils.info(`$[${toolCall} ${args}]>>\n${myOutput}\n`);
     } catch (e) {
-        utils.parseForError(myOutput);
-        utils.parseForError(myError);
-        utils.info(`$[${tool} ${args}]>>\n${myOutput}\n${myError}\n`);
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res != null ? res : "";
+        res = utils.parseForError(myError)
+        global.log_out_content += res != null ? res : "";
+        utils.info(`$[${tool} ${args}]>>\n${myOutput}\n\n${myError}\n`);
         throw new Error(e.message);
     }
     core.endGroup();

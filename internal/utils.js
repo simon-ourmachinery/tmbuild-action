@@ -3,6 +3,7 @@ const exec = require('@actions/exec');
 const os = require('os');
 const fs = require('fs');
 const yaml = require('js-yaml');
+const { tmbuild } = require('./build');
 
 
 function info(msg) {
@@ -48,7 +49,7 @@ exports.cpDir = cpDir;
 
 function parseForError(content) {
     try {
-        let result = "";
+        let result = null;
         if (content.includes("tmbuild:")) {
             // tmbuild error:
             const regex_tm = /^tmbuild:(.*)$/gm;
@@ -59,6 +60,7 @@ function parseForError(content) {
                 }
                 if (m.length >= 2) {
                     core.error(m[0].trim());
+                    result = `\n\nerror:\n${m[0].trim()}\n`
                 }
                 result = "tmbuild: failed";
             }
@@ -71,8 +73,10 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.error(`file:${m[1].trim()}\nerror: ${m[2].trim()}\n`)
+                    result = `\n\nfile:${m[1].trim()}\nerror: ${m[2].trim()}\n`
                 } else {
                     core.error(`${m[0].trim()}\n`)
+                    result = `\n\nerror:\n${m[0].trim()}\n`
                 }
             }
             const regex_war = /(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
@@ -83,18 +87,16 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.warning(`file:${m[1].trim()}\nwarning: ${m[2].trim()}\n`);
+                    result = `\n\nfile:${m[1].trim()}\nwarning: ${m[2].trim()}\n`
                 } else {
                     core.warning(`${m[0].trim()}\n`)
+                    result = `\n\nwarning:\n${m[0].trim()}\n`;
                 }
             }
         }
-        if (result.length != 0) {
-            return result;
-        } else {
-            return content;
-        }
+        return result;
     } catch {
-        return content;
+        return "[tmbuild-action] error parsing error!";
     }
 }
 
