@@ -96,9 +96,9 @@ function parseForError(content) {
                 }
                 if (m.length >= 2) {
                     core.error(m[0].trim());
-                    result += `\\nerror:\\n${m[0].trim()}\\n`
+                    result += `error:${m[0].trim()}\n`
                 } else {
-                    result += "tmbuild: failed";
+                    result += "tmbuild: failed\n";
                 }
             }
         } else {
@@ -110,10 +110,10 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.error(`file:${m[1].trim()}\nerror: ${m[2].trim()}\n`)
-                    result += `\\nfile:\`${m[1].trim()}\`\\nerror: \`${m[2].trim()}\`\\n`
+                    result += `file:\`${m[1].trim()}\`error: \`${m[2].trim()}\`\n`
                 } else {
                     core.error(`${m[0].trim()}\n`)
-                    result += `\\nerror:\\n${m[0].trim()}\\n`
+                    result += `error:${m[0].trim()}\n`
                 }
             }
             const regex_war = /(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
@@ -124,20 +124,20 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.warning(`file:${m[1].trim()}\nwarning: ${m[2].trim()}\n`);
-                    result += `\\nfile:\`${m[1].trim()}\`\\nwarning: \`${m[2].trim()}\`\\n`
+                    result += `file:\`${m[1].trim()}\`warning: \`${m[2].trim()}\`\n`
                 } else {
                     core.warning(`${m[0].trim()}\n`)
-                    result += `\\nwarning:\\n${m[0].trim()}\\n`;
+                    result += `warning:${m[0].trim()}\n`;
                 }
             }
         }
         if (has_seg_fault) {
             core.error("Segmentation fault (core dumped)");
-            result += `\\nerror: found crash: \`Segmentation fault (core dumped)\`\\n${result}\\n`;
+            result += `error: found crash: \`Segmentation fault (core dumped)\`\n${result}\n`;
         }
         return result;
     } catch {
-        return "[tmbuild-action] error parsing error!";
+        return "[tmbuild-action] error parsing error!\n";
     }
 }
 
