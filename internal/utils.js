@@ -84,7 +84,7 @@ function contains_not_found(str) {
 
 function parseForError(content) {
     try {
-        let result = null;
+        let result = "";
         const has_seg_fault = seg_fault(content);
         if (content.includes("tmbuild:")) {
             // tmbuild error:
@@ -95,15 +95,10 @@ function parseForError(content) {
                     regex_tm.lastIndex++;
                 }
                 if (m.length >= 2) {
-                    if (!contains_not_found(content)) {
-                        core.error(m[0].trim());
-                        result = `\n\nerror:\n${m[0].trim()}\n`
-                    } else {
-                        core.warning(m[0].trim());
-                        result = `\n\warning:\n${m[0].trim()}\n`
-                    }
+                    core.error(m[0].trim());
+                    result += `\\nerror:\\n${m[0].trim()}\\n`
                 } else {
-                    result = "tmbuild: failed";
+                    result += "tmbuild: failed";
                 }
             }
         } else {
@@ -115,10 +110,10 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.error(`file:${m[1].trim()}\nerror: ${m[2].trim()}\n`)
-                    result = `\n\nfile:\`${m[1].trim()}\`\nerror: \`${m[2].trim()}\`\n`
+                    result += `\\nfile:\`${m[1].trim()}\`\\nerror: \`${m[2].trim()}\`\\n`
                 } else {
                     core.error(`${m[0].trim()}\n`)
-                    result = `\n\nerror:\n${m[0].trim()}\n`
+                    result += `\\nerror:\\n${m[0].trim()}\\n`
                 }
             }
             const regex_war = /(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
@@ -129,16 +124,16 @@ function parseForError(content) {
                 }
                 if (m[1] != undefined && m[2] != undefined) {
                     core.warning(`file:${m[1].trim()}\nwarning: ${m[2].trim()}\n`);
-                    result = `\n\nfile:\`${m[1].trim()}\`\nwarning: \`${m[2].trim()}\`\n`
+                    result += `\\nfile:\`${m[1].trim()}\`\\nwarning: \`${m[2].trim()}\`\\n`
                 } else {
                     core.warning(`${m[0].trim()}\n`)
-                    result = `\n\nwarning:\n${m[0].trim()}\n`;
+                    result += `\\nwarning:\\n${m[0].trim()}\\n`;
                 }
             }
         }
         if (has_seg_fault) {
             core.error("Segmentation fault (core dumped)");
-            result = `error: found crash: \`Segmentation fault (core dumped)\`\n${result}\n`;
+            result += `\\nerror: found crash: \`Segmentation fault (core dumped)\`\\n${result}\\n`;
         }
         return result;
     } catch {

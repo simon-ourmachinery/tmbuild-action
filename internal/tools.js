@@ -87,13 +87,13 @@ async function exec(tool, args) {
             await e.exec(`${toolCall} ${args}`, [], options);
         }
         let res = utils.parseForError(myOutput);
-        global.log_out_content += res != null ? res : "";
+        global.log_out_content += res.length != 0 ? res : "";
         utils.info(`$[${toolCall} ${args}]>>\n${myOutput}\n`);
     } catch (e) {
         let res = utils.parseForError(myOutput);
-        global.log_out_content += res != null ? res : "";
+        global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError)
-        global.log_out_content += res != null ? res : "";
+        global.log_out_content += res.length != 0 ? res : "";
         utils.info(`$[${tool} ${args}]>>\n${myOutput}\n\n${myError}\n`);
         throw new Error(e.message);
     }

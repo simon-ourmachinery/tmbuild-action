@@ -47,15 +47,15 @@ async function build_tmbuild(buildconfig) {
         }
 
         let res = utils.parseForError(myOutput);
-        global.log_out_content += res != null ? res : "";
+        global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError)
-        global.log_out_content += res != null ? res : "";
+        global.log_out_content += res.length != 0 ? res : "";
         core.endGroup();
     } catch (e) {
         let res = utils.parseForError(myOutput);
-        global.log_out_content += res != null ? res : "";
+        global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError)
-        global.log_out_content += res != null ? res : "";
+        global.log_out_content += res.length != 0 ? res : "";
         utils.info(myOutput)
         utils.info(myError)
         throw new Error(e.message);
