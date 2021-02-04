@@ -118,12 +118,16 @@ async function build_tmbuild(buildconfig, ending) {
         } else {
             utils.info("info: packaged project but did not store the artifacts because `packageArtifact` is false");
         }
-
-        core.setOutput('result', global.log_out_content);
+        const regex = /(^")|("$)/gm;
+        const subst = ``;
+        const result = JSON.stringify(global.log_out_content).replace(regex, subst);
+        core.setOutput('result', result);
 
     } catch (e) {
-        core.setOutput('result', `${global.log_out_content}`);
         core.setFailed(e.message);
-        core.setOutput(`result`, global.log_out_content);
+        const regex = /(^")|("$)/gm;
+        const subst = ``;
+        const result = JSON.stringify(global.log_out_content).replace(regex, subst);
+        core.setOutput(`result`, result);
     }
 })();
