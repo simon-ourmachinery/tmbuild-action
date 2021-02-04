@@ -120,14 +120,14 @@ async function build_tmbuild(buildconfig, ending) {
         }
         const regex = /(^")|("$)/gm;
         const subst = ``;
-        const result = JSON.stringify(global.log_out_content).replace(regex, subst);
+        const result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
         core.setOutput('result', result);
 
     } catch (e) {
         core.setFailed(e.message);
         const regex = /(^")|("$)/gm;
         const subst = ``;
-        const result = JSON.stringify(global.log_out_content).replace(regex, subst);
+        const result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
         core.setOutput(`result`, result);
     }
 })();
