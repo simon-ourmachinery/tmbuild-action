@@ -124,6 +124,21 @@ async function build_tmbuild(buildconfig, ending) {
         core.setOutput('result', result);
 
     } catch (e) {
+        
+        const currentDate = new Date();
+        const date = currentDate.getDate();
+        const month = currentDate.getMonth();
+        const year = currentDate.getFullYear();
+        const now = `${date}-${month}-${year}`;
+
+        if (utils.getInput("artifact") === 'true') {
+            core.startGroup(`[tmbuild-action] store artifacts`);
+            await tools.storeFolder(`bin-${buildconfig}-${now}`, `./bin/${buildconfig}`);
+            await tools.storeFolder(`build-${buildconfig}-${now}`, `./build`);
+            core.endGroup();
+        }
+        
+        
         core.setFailed(e.message);
         const regex = /(^")|("$)/gm;
         const subst = ``;
