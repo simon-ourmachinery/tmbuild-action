@@ -124,6 +124,11 @@ async function build_tmbuild(buildconfig, ending) {
         core.setOutput('result', result);
 
     } catch (e) {
+        core.setFailed(e.message);
+        const regex = /(^")|("$)/gm;
+        const subst = ``;
+        const result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
+        core.setOutput(`result`, result);
         
         const currentDate = new Date();
         const date = currentDate.getDate();
@@ -133,16 +138,9 @@ async function build_tmbuild(buildconfig, ending) {
 
         if (utils.getInput("artifact") === 'true') {
             core.startGroup(`[tmbuild-action] store artifacts`);
-            await tools.storeFolder(`bin-${buildconfig}-${now}`, `./bin/${buildconfig}`);
-            await tools.storeFolder(`build-${buildconfig}-${now}`, `./build`);
+            await tools.storeFolder(`bin-${now}`, `./bin`);
+            await tools.storeFolder(`build-${now}`, `./build`);
             core.endGroup();
         }
-        
-        
-        core.setFailed(e.message);
-        const regex = /(^")|("$)/gm;
-        const subst = ``;
-        const result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
-        core.setOutput(`result`, result);
     }
 })();
