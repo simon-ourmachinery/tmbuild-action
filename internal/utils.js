@@ -117,6 +117,7 @@ function parseForError(content) {
                 }
             }
         } else {
+            core.info("Found neither docgen nor tmbuild error");
             const regex_err = /(.*)error:(.*)|(.*)Error:(.*)|(.*)error :(.*)|(.*)Error :(.*)/gm;
             while ((m = regex_err.exec(content)) !== null) {
                 // This is necessary to avoid infinite loops with zero-width matches
