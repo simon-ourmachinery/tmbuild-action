@@ -87,18 +87,20 @@ function parseForError(content) {
         let result = "";
         const has_seg_fault = seg_fault(content);
         if (content.includes("tmbuild:")) {
-            // tmbuild error:
-            const regex_tm = /^tmbuild:(.*)$/gm;
-            while ((m = regex_tm.exec(content)) !== null) {
-                // This is necessary to avoid infinite loops with zero-width matches
-                if (m.index === regex_tm.lastIndex) {
-                    regex_tm.lastIndex++;
-                }
-                if (m.length >= 2) {
-                    core.error(m[0].trim());
-                    result += `${m[0].trim()}\n`
-                } else {
-                    result += "tmbuild: failed\n";
+            if (!content.includes("tmbuild: No unit-test executable found.")) {
+                // tmbuild error:
+                const regex_tm = /^tmbuild:(.*)$/gm;
+                while ((m = regex_tm.exec(content)) !== null) {
+                    // This is necessary to avoid infinite loops with zero-width matches
+                    if (m.index === regex_tm.lastIndex) {
+                        regex_tm.lastIndex++;
+                    }
+                    if (m.length >= 2) {
+                        core.error(m[0].trim());
+                        result += `${m[0].trim()}\n`
+                    } else {
+                        result += "tmbuild: failed\n";
+                    }
                 }
             }
         }
