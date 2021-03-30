@@ -101,51 +101,61 @@ function parseForError(content) {
                     result += "tmbuild: failed\n";
                 }
             }
-        } else if (content.includes("docgen:")) {
-            // tmbuild error:
-            core.info("found docgen information");
-            const regex_tm = /docgen:(.*)$/gm;
-            while ((m = regex_tm.exec(content)) !== null) {
-                if (m.index === regex_tm.lastIndex) {
-                    regex_tm.lastIndex++;
+        }
+        if (content.includes("docgen:")) {
+            // docgen error:
+            const regex_doc = /docgen:(.*)cannot resolve(.*)$/gm;
+            while ((m = regex_doc.exec(content)) !== null) {
+                if (m.index === regex_doc.lastIndex) {
+                    regex_doc.lastIndex++;
                 }
                 if (m.length >= 2) {
                     core.error(m[0].trim());
-                    result += `${m[0].trim()}\n`
+                    result += `error: ${m[0].trim()}\n`
                 } else {
                     result += "docgen: failed\n";
                 }
             }
-        } else {
-            core.info("Found neither docgen nor tmbuild error");
-            const regex_err = /(.*)error:(.*)|(.*)Error:(.*)|(.*)error :(.*)|(.*)Error :(.*)/gm;
-            while ((m = regex_err.exec(content)) !== null) {
-                // This is necessary to avoid infinite loops with zero-width matches
-                if (m.index === regex_err.lastIndex) {
-                    regex_err.lastIndex++;
+            const regex_docgen_missing = /docgen:(.*)missing(.*)$/gm;
+            while ((m = regex_docgen_missing.exec(content)) !== null) {
+                if (m.index === regex_docgen_missing.lastIndex) {
+                    regex_docgen_missing.lastIndex++;
                 }
-                if (m[1] != undefined && m[2] != undefined) {
-                    core.error(`file:${m[1].trim()}\nerror: ${m[2].trim()}\n`)
-                    result += `file:\`${m[1].trim()}\`error: \`${m[2].trim()}\`\n`
+                if (m.length >= 2) {
+                    core.warning(m[0].trim());
+                    result += `warning: ${m[0].trim()}\n`
                 } else {
-                    core.error(`${m[0].trim()}\n`)
-                    result += `error:${m[0].trim()}\n`
+                    result += "docgen: failed\n";
                 }
             }
+        }
+        const regex_err = /(.*)error:(.*)|(.*)Error:(.*)|(.*)error :(.*)|(.*)Error :(.*)/gm;
+        while ((m = regex_err.exec(content)) !== null) {
+            // This is necessary to avoid infinite loops with zero-width matches
+            if (m.index === regex_err.lastIndex) {
+                regex_err.lastIndex++;
+            }
+            if (m[1] != undefined && m[2] != undefined) {
+                core.error(`file:${m[1].trim()}\nerror: ${m[2].trim()}\n`)
+                result += `file:\`${m[1].trim()}\`error: \`${m[2].trim()}\`\n`
+            } else {
+                core.error(`${m[0].trim()}\n`)
+                result += `error:${m[0].trim()}\n`
+            }
+        }
 
-            const regex_war = /(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
-            while ((m = regex_war.exec(content)) !== null) {
-                // This is necessary to avoid infinite loops with zero-width matches
-                if (m.index === regex_war.lastIndex) {
-                    regex_war.lastIndex++;
-                }
-                if (m[1] != undefined && m[2] != undefined) {
-                    core.warning(`file:${m[1].trim()}\nwarning: ${m[2].trim()}\n`);
-                    result += `file:\`${m[1].trim()}\`warning: \`${m[2].trim()}\`\n`
-                } else {
-                    core.warning(`${m[0].trim()}\n`)
-                    result += `warning:${m[0].trim()}\n`;
-                }
+        const regex_war = /(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
+        while ((m = regex_war.exec(content)) !== null) {
+            // This is necessary to avoid infinite loops with zero-width matches
+            if (m.index === regex_war.lastIndex) {
+                regex_war.lastIndex++;
+            }
+            if (m[1] != undefined && m[2] != undefined) {
+                core.warning(`file:${m[1].trim()}\nwarning: ${m[2].trim()}\n`);
+                result += `file:\`${m[1].trim()}\`warning: \`${m[2].trim()}\`\n`
+            } else {
+                core.warning(`${m[0].trim()}\n`)
+                result += `warning:${m[0].trim()}\n`;
             }
         }
         if (has_seg_fault) {
