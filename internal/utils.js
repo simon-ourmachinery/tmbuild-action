@@ -198,13 +198,16 @@ function getLib(libjson, lib) {
 
 
 function getLibPath(libjson, lib) {
-    if (lib != "tmbuild") {
+    if (lib != "tmbuild" && lib != "unit-test") {
         const libobject = getLib(libjson, lib);
         const libfolder = getInput("libpath");
         return `${libfolder}/${libobject.lib}`;
-    } else {
+    } else if (lib == "tmbuild") {
         const buildconfig = getInput("buildconfig");
         return `./bin/tmbuild/${buildconfig}`;
+    } else {
+        const buildconfig = getInput("buildconfig");
+        return `./bin/unit_test/${buildconfig}`;
     }
 }
 
