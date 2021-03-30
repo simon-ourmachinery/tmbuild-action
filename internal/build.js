@@ -79,7 +79,7 @@ async function tmbuild(package) {
     const buildconfig = utils.getInput("buildconfig");
     const project = utils.getInput("project");
     const clang = utils.getInput("clang");
-    const usegendoc = utils.getInput("clang");
+    const usegendoc = utils.getInput("gendoc");
     let useclang = (clang === "true") ? "--clang" : "";
     let gendoc = (usegendoc === "true") ? "--gen-doc" : "";
     core.info(`build: ${gendoc}`);
