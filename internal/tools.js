@@ -102,6 +102,31 @@ async function exec(tool, args) {
 exports.exec = exec;
 
 
+async function hash(file) {
+    let myOutput = '';
+    let myError = '';
+    const options = {};
+    options.listeners = {
+        stdout: (data) => {
+            myOutput += data.toString();
+        },
+        stderr: (data) => {
+            myError += data.toString();
+        }
+    };
+    options.silent = !core.isDebug();
+    try {
+        if (!fs.existsSync(file)) throw new Error(`Error: Could not find ${file}`);
+        await e.exec(`git hash-object ${file}`, [], options);
+        return myOutput;
+    } catch (e) {
+        utils.info(`There was an error with git hash-object ${file}`);
+        throw new Error(e.message);
+    }
+}
+exports.hash = hash;
+
+
 async function storeFolder(artifactName, path) {
 
     let files = [];
