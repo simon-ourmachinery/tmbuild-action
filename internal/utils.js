@@ -96,9 +96,24 @@ function parseForError(content) {
                 }
                 if (m.length >= 2) {
                     core.error(m[0].trim());
-                    result += `error:${m[0].trim()}\n`
+                    result += `${m[0].trim()}\n`
                 } else {
                     result += "tmbuild: failed\n";
+                }
+            }
+        } else if (content.includes("docgen:")) {
+            // tmbuild error:
+            const regex_tm = /^docgen:(.*)$/gm;
+            while ((m = regex_tm.exec(content)) !== null) {
+                // This is necessary to avoid infinite loops with zero-width matches
+                if (m.index === regex_tm.lastIndex) {
+                    regex_tm.lastIndex++;
+                }
+                if (m.length >= 2) {
+                    core.error(m[0].trim());
+                    result += `${m[0].trim()}\n`
+                } else {
+                    result += "docgen: failed\n";
                 }
             }
         } else {
@@ -114,20 +129,6 @@ function parseForError(content) {
                 } else {
                     core.error(`${m[0].trim()}\n`)
                     result += `error:${m[0].trim()}\n`
-                }
-            }
-
-            const regex_docgen_err = /docgen: (.*):(.*)|docgen: (.*)/gm;
-            while ((m = regex_docgen_err.exec(content)) !== null) {
-                if (m.index === regex_docgen_err.lastIndex) {
-                    regex_docgen_err.lastIndex++;
-                }
-                if (m[1] != undefined && m[2] != undefined) {
-                    core.error(`docgen: ${m[1].trim()}\nerror: ${m[2].trim()}\n`)
-                    result += `docgen:\`${m[1].trim()}\`error: \`${m[2].trim()}\`\n`
-                } else {
-                    core.error(`docgen: ${m[0].trim()}\n`)
-                    result += `docgen: ${m[0].trim()}\n`
                 }
             }
 
