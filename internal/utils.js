@@ -116,6 +116,21 @@ function parseForError(content) {
                     result += `error:${m[0].trim()}\n`
                 }
             }
+
+            const regex_docgen_err = /docgen: (.*):(.*)|docgen: (.*)/gm;
+            while ((m = regex_docgen_err.exec(content)) !== null) {
+                if (m.index === regex_docgen_err.lastIndex) {
+                    regex_docgen_err.lastIndex++;
+                }
+                if (m[1] != undefined && m[2] != undefined) {
+                    core.error(`docgen: ${m[1].trim()}\nerror: ${m[2].trim()}\n`)
+                    result += `docgen:\`${m[1].trim()}\`error: \`${m[2].trim()}\`\n`
+                } else {
+                    core.error(`docgen: ${m[0].trim()}\n`)
+                    result += `docgen: ${m[0].trim()}\n`
+                }
+            }
+
             const regex_war = /(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
             while ((m = regex_war.exec(content)) !== null) {
                 // This is necessary to avoid infinite loops with zero-width matches
