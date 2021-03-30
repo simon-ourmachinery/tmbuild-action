@@ -82,6 +82,7 @@ async function tmbuild(package) {
     const usegendoc = utils.getInput("clang");
     let useclang = (clang === "true") ? "--clang" : "";
     let gendoc = (usegendoc === "true") ? "--gen-doc" : "";
+    core.info(`build: ${gendoc}`);
     if (package.length != 0) {
         await tools.exec("tmbuild", `-p ${package} ${useclang}  ${gendoc}`);
     } else if (project.length != 0) {
