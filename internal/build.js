@@ -79,13 +79,15 @@ async function tmbuild(package) {
     const buildconfig = utils.getInput("buildconfig");
     const project = utils.getInput("project");
     const clang = utils.getInput("clang");
+    const gendoc = utils.getInput("clang");
     let useclang = (clang === "true") ? "--clang" : "";
+    let gendoc = (gendoc === "true") ? "--gen-doc" : ""
     if (package.length != 0) {
-        await tools.exec("tmbuild", `-p ${package} ${useclang}`);
+        await tools.exec("tmbuild", `-p ${package} ${useclang}  ${gendoc}`);
     } else if (project.length != 0) {
-        await tools.exec("tmbuild", `-c ${buildconfig} --project ${project} ${useclang}`);
+        await tools.exec("tmbuild", `-c ${buildconfig} --project ${project} ${useclang} ${gendoc}`);
     } else {
-        await tools.exec("tmbuild", `-c ${buildconfig} ${useclang}`);
+        await tools.exec("tmbuild", `-c ${buildconfig} ${useclang}  ${gendoc}`);
     }
 }
 exports.tmbuild = tmbuild;

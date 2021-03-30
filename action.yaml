@@ -15,6 +15,9 @@ inputs:
   package:
     description: 'Package the engine'
     default: ""
+  gendoc:
+    description: 'Will generate a doc'
+    default: false
   buildtmbuild:
       description: 'Will build tmbuild itself'
       default: true
@@ -24,7 +27,7 @@ inputs:
       default: "./"
   libpath:
       description: 'path to libs'
-      default: "./lib"    
+      default: "./lib"
   repo:
       description: 'repository for the dependencies'
       default: "https://ourmachinery.com/lib/"
