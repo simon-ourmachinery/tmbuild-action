@@ -84,8 +84,8 @@ async function tmbuild(package) {
         await tools.exec("tmbuild", `-p ${package} ${useclang}`);
     } else if (project.length != 0) {
         await tools.exec("tmbuild", `-c ${buildconfig} --project ${project} ${useclang}`);
-    } else
+    } else {
         await tools.exec("tmbuild", `-c ${buildconfig} ${useclang}`);
-}
+    }
 }
 exports.tmbuild = tmbuild;
