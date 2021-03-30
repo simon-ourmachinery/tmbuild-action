@@ -28,6 +28,9 @@ inputs:
   repo:
       description: 'repository for the dependencies'
       default: "https://ourmachinery.com/lib/"
+  project:
+    description: 'Will build a specific project'
+    default: ""
   # cache settings:
   cacheVersion:
     default: "1.0.0"

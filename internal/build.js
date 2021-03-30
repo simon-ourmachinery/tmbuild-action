@@ -77,12 +77,15 @@ exports.make = make;
 
 async function tmbuild(package) {
     const buildconfig = utils.getInput("buildconfig");
+    const project = utils.getInput("project");
     const clang = utils.getInput("clang");
     let useclang = (clang === "true") ? "--clang" : "";
     if (package.length != 0) {
         await tools.exec("tmbuild", `-p ${package} ${useclang}`);
-    } else {
+    } else if (project.length != 0) {
+        await tools.exec("tmbuild", `-c ${buildconfig} --project ${project} ${useclang}`);
+    } else
         await tools.exec("tmbuild", `-c ${buildconfig} ${useclang}`);
-    }
+}
 }
 exports.tmbuild = tmbuild;
