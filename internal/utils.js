@@ -103,9 +103,9 @@ function parseForError(content) {
             }
         } else if (content.includes("docgen:")) {
             // tmbuild error:
-            const regex_tm = /^docgen:(.*)$/gm;
+            core.info("found docgen information");
+            const regex_tm = /docgen:(.*)$/gm;
             while ((m = regex_tm.exec(content)) !== null) {
-                // This is necessary to avoid infinite loops with zero-width matches
                 if (m.index === regex_tm.lastIndex) {
                     regex_tm.lastIndex++;
                 }
