@@ -28,8 +28,7 @@ async function build_tmbuild(buildconfig, ending) {
     let caches = [];
     let new_caches = [];
     try {
-        const tmurl = utils.getInput("tmurl");
-        const useBinaryTMVersion = tmurl.length != 0;
+        const usePackEngine = utils.getInput("usePackEngine") === 'true';
         const canBuild = utils.getInput("build") === 'true';
         let buildtmbuild = utils.getInput("buildtmbuild") === 'true';
         const libpath = utils.getInput("libpath");
@@ -48,7 +47,7 @@ async function build_tmbuild(buildconfig, ending) {
         let unittestCacheIsDirty = true;
         // artifact
         const packageArtifact = utils.getInput("packageArtifact") === 'true';
-        if (!useBinaryTMVersion) {
+        if (!usePackEngine) {
             // downloads the cache and if cache does not exist it will install it:
             if (useCache) {
                 // download cached libs (dependencies)
@@ -122,9 +121,6 @@ async function build_tmbuild(buildconfig, ending) {
             if (buildtmbuild && !tmbuildCacheIsDirty) {
                 await build_tmbuild(buildconfig, ending);
             }
-        } else {
-            // install the machinery binary
-            await tools.downloadEngine(tmurl, "./");
         }
 
         // build engine or project
@@ -150,7 +146,7 @@ async function build_tmbuild(buildconfig, ending) {
             }
         }
 
-        if (useCache && libCacheIsDirty) {
+        if (useCache && libCacheIsDirty && !usePackEngine) {
             try {
                 await cache.set(libpath, `libs`, libcacheVersion);
                 new_caches.push({ name: "libs", version: libcacheVersion });

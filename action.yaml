@@ -31,9 +31,9 @@ inputs:
   repo:
       description: 'repository for the dependencies'
       default: "https://ourmachinery.com/lib/"
-  tmurl:
-      description: 'Url to the engines zip'
-      default: ""
+  usePackedEngine:
+      description: 'If set to true the action assumes that the engine has been unpacked in in the ./ directory. Will not build tmbuild nor unit-test or the engine itself'
+      default: false
   project:
     description: 'Will build a specific project'
     default: ""

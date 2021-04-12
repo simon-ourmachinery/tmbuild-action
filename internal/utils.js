@@ -200,23 +200,22 @@ function getLib(libjson, lib) {
 
 
 function getLibPath(libjson, lib) {
+    const usePackEngine = utils.getInput("usePackEngine") === 'true';
     if (lib != "tmbuild" && lib != "unit-test") {
         const libobject = getLib(libjson, lib);
         const libfolder = getInput("libpath");
         return `${libfolder}/${libobject.lib}`;
     } else if (lib == "tmbuild") {
-        const tmurl = utils.getInput("tmurl");
-        if (tmurl.length == 0) {
+        if (usePackEngine) {
             const buildconfig = getInput("buildconfig");
             return `./bin/tmbuild/${buildconfig}`;
         } else {
             return "./bin";
         }
     } else {
-        const tmurl = utils.getInput("tmurl");
-        if (tmurl.length == 0) {
+        if (usePackEngine) {
             const buildconfig = getInput("buildconfig");
-            return `./bin/unit_test`;
+            return `./bin/unit_test/${buildconfig}`;
         } else {
             return "./bin";
         }
