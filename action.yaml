@@ -32,7 +32,7 @@ inputs:
       description: 'repository for the dependencies'
       default: "https://ourmachinery.com/lib/"
   tmurl:
-      description: 'Url to the engine's zip'
+      description: 'Url to the engines zip'
       default: ""
   project:
     description: 'Will build a specific project'
