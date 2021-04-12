@@ -28,6 +28,8 @@ async function build_tmbuild(buildconfig, ending) {
     let caches = [];
     let new_caches = [];
     try {
+        const tmurl = utils.getInput("tmurl");
+        const useBinaryTMVersion = tmurl.length != 0;
         const canBuild = utils.getInput("build") === 'true';
         let buildtmbuild = utils.getInput("buildtmbuild") === 'true';
         const libpath = utils.getInput("libpath");
@@ -46,78 +48,83 @@ async function build_tmbuild(buildconfig, ending) {
         let unittestCacheIsDirty = true;
         // artifact
         const packageArtifact = utils.getInput("packageArtifact") === 'true';
-        // downloads the cache and if cache does not exist it will install it:
-        if (useCache) {
-            // download cached libs (dependencies)
-            if (cacheLibs) {
-                try {
-                    core.startGroup("[tmbuild-action] get cached dependencies");
-                    await cache.get("libs", libcacheVersion);
-                    caches.push({ name: "libs", version: libcacheVersion });
-                    core.endGroup();
-                } catch (e) {
-                    utils.info(e.message);
-                    await tools.install("bearssl");
-                    await tools.install("premake5");
-                    if (os.platform() != "win32") {
-                        const toolObject = utils.getLib(libjson, "premake5");
-                        const toolname = toolObject.lib;
-                        await tools.chmod(`${libpath}/${toolname}/premake5`);
+        if (!useBinaryTMVersion) {
+            // downloads the cache and if cache does not exist it will install it:
+            if (useCache) {
+                // download cached libs (dependencies)
+                if (cacheLibs) {
+                    try {
+                        core.startGroup("[tmbuild-action] get cached dependencies");
+                        await cache.get("libs", libcacheVersion);
+                        caches.push({ name: "libs", version: libcacheVersion });
+                        core.endGroup();
+                    } catch (e) {
+                        utils.info(e.message);
+                        await tools.install("bearssl");
+                        await tools.install("premake5");
+                        if (os.platform() != "win32") {
+                            const toolObject = utils.getLib(libjson, "premake5");
+                            const toolname = toolObject.lib;
+                            await tools.chmod(`${libpath}/${toolname}/premake5`);
+                        }
+                        libCacheIsDirty = true;
                     }
-                    libCacheIsDirty = true;
                 }
-            }
-            // downloads cached tmbuild version
-            if (!buildtmbuild) {
-                core.startGroup(`[tmbuild-action] get cached tmbuild-${buildconfig}`);
+                // downloads cached tmbuild version
+                if (!buildtmbuild) {
+                    core.startGroup(`[tmbuild-action] get cached tmbuild-${buildconfig}`);
+                    try {
+                        await cache.get(`tmbuild`, cacheVersion);
+                        caches.push({ name: "tmbuild", version: cacheVersion });
+                    } catch (e) {
+                        utils.info(e.message);
+                        await build_tmbuild(buildconfig, ending);
+                        tmbuildCacheIsDirty = true;
+                    }
+                    core.endGroup();
+                }
+
+                core.startGroup(`[tmbuild-action] get cached unit-test-${buildconfig}`);
                 try {
-                    await cache.get(`tmbuild`, cacheVersion);
-                    caches.push({ name: "tmbuild", version: cacheVersion });
+                    await cache.get(`unit-test`, unittestcacheVersion);
+                    caches.push({ name: "unit-test", version: unittestcacheVersion });
+                    await utils.cp(`./bin/unit_test/${buildconfig}/unit-test${ending}`, `./bin`);
+                    unittestCacheIsDirty = false;
                 } catch (e) {
-                    utils.info(e.message);
-                    await build_tmbuild(buildconfig, ending);
-                    tmbuildCacheIsDirty = true;
+                    utils.info("Cannot get unit test from cache");
                 }
                 core.endGroup();
+
+            } else {
+                await tools.install("bearssl");
+                await tools.install("premake5");
+                if (os.platform() != "win32") {
+                    const toolObject = utils.getLib(libjson, "premake5");
+                    const toolname = toolObject.lib;
+                    await tools.chmod(`${libpath}/${toolname}/premake5`);
+                }
             }
 
-            core.startGroup(`[tmbuild-action] get cached unit-test-${buildconfig}`);
-            try {
-                await cache.get(`unit-test`, unittestcacheVersion);
-                caches.push({ name: "unit-test", version: unittestcacheVersion });
-                await utils.cp(`./bin/unit_test/${buildconfig}/unit-test${ending}`, `./bin`);
-                unittestCacheIsDirty = false;
-            } catch (e) {
-                utils.info("Cannot get unit test from cache");
+            // cache tmbuild if needed
+            if (useCache && tmbuildCacheIsDirty) {
+                try {
+                    await cache.set(`./bin/tmbuild/${buildconfig}`, `tmbuild`, cacheVersion);
+                    new_caches.push({ name: "tmbuild", version: cacheVersion });
+                } catch (e) {
+                    utils.warning(`There was an error with setting the cache for tmbuild ${e.message}`);
+                    // make sure we recover from error and build tmbuild again....
+                    buildtmbuild = true;
+                    tmbuildCacheIsDirty = false;
+                }
             }
-            core.endGroup();
 
+            // build tmuild if needed
+            if (buildtmbuild && !tmbuildCacheIsDirty) {
+                await build_tmbuild(buildconfig, ending);
+            }
         } else {
-            await tools.install("bearssl");
-            await tools.install("premake5");
-            if (os.platform() != "win32") {
-                const toolObject = utils.getLib(libjson, "premake5");
-                const toolname = toolObject.lib;
-                await tools.chmod(`${libpath}/${toolname}/premake5`);
-            }
-        }
-
-        // cache tmbuild if needed
-        if (useCache && tmbuildCacheIsDirty) {
-            try {
-                await cache.set(`./bin/tmbuild/${buildconfig}`, `tmbuild`, cacheVersion);
-                new_caches.push({ name: "tmbuild", version: cacheVersion });
-            } catch (e) {
-                utils.warning(`There was an error with setting the cache for tmbuild ${e.message}`);
-                // make sure we recover from error and build tmbuild again....
-                buildtmbuild = true;
-                tmbuildCacheIsDirty = false;
-            }
-        }
-
-        // build tmuild if needed
-        if (buildtmbuild && !tmbuildCacheIsDirty) {
-            await build_tmbuild(buildconfig, ending);
+            // install the machinery binary
+            await tools.downloadEngine(tmurl, "./");
         }
 
         // build engine or project

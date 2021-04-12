@@ -205,11 +205,21 @@ function getLibPath(libjson, lib) {
         const libfolder = getInput("libpath");
         return `${libfolder}/${libobject.lib}`;
     } else if (lib == "tmbuild") {
-        const buildconfig = getInput("buildconfig");
-        return `./bin/tmbuild/${buildconfig}`;
+        const tmurl = utils.getInput("tmurl");
+        if (tmurl.length == 0) {
+            const buildconfig = getInput("buildconfig");
+            return `./bin/tmbuild/${buildconfig}`;
+        } else {
+            return "./bin";
+        }
     } else {
-        const buildconfig = getInput("buildconfig");
-        return `./bin/unit_test/${buildconfig}`;
+        const tmurl = utils.getInput("tmurl");
+        if (tmurl.length == 0) {
+            const buildconfig = getInput("buildconfig");
+            return `./bin/unit_test`;
+        } else {
+            return "./bin";
+        }
     }
 }
 
