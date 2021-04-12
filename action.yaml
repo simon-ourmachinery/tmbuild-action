@@ -33,7 +33,7 @@ inputs:
       default: "https://ourmachinery.com/lib/"
   tmurl:
       description: 'Url to the engine's zip'
-      default: NULL
+      default: ""
   project:
     description: 'Will build a specific project'
     default: ""
