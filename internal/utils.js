@@ -200,20 +200,20 @@ function getLib(libjson, lib) {
 
 
 function getLibPath(libjson, lib) {
-    const usePackEngine = utils.getInput("usePackEngine") === 'true';
+    const usePackedEngine = utils.getInput("usePackedEngine") === 'true';
     if (lib != "tmbuild" && lib != "unit-test") {
         const libobject = getLib(libjson, lib);
         const libfolder = getInput("libpath");
         return `${libfolder}/${libobject.lib}`;
     } else if (lib == "tmbuild") {
-        if (usePackEngine) {
+        if (usePackedEngine) {
             const buildconfig = getInput("buildconfig");
             return `./bin/tmbuild/${buildconfig}`;
         } else {
             return "./bin";
         }
     } else {
-        if (usePackEngine) {
+        if (usePackedEngine) {
             const buildconfig = getInput("buildconfig");
             return `./bin/unit_test/${buildconfig}`;
         } else {

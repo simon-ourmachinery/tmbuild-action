@@ -28,7 +28,7 @@ async function build_tmbuild(buildconfig, ending) {
     let caches = [];
     let new_caches = [];
     try {
-        const usePackEngine = utils.getInput("usePackEngine") === 'true';
+        const usePackedEngine = utils.getInput("usePackedEngine") === 'true';
         const canBuild = utils.getInput("build") === 'true';
         let buildtmbuild = utils.getInput("buildtmbuild") === 'true';
         const libpath = utils.getInput("libpath");
@@ -47,7 +47,7 @@ async function build_tmbuild(buildconfig, ending) {
         let unittestCacheIsDirty = true;
         // artifact
         const packageArtifact = utils.getInput("packageArtifact") === 'true';
-        if (!usePackEngine) {
+        if (!usePackedEngine) {
             // downloads the cache and if cache does not exist it will install it:
             if (useCache) {
                 // download cached libs (dependencies)
@@ -146,7 +146,7 @@ async function build_tmbuild(buildconfig, ending) {
             }
         }
 
-        if (useCache && libCacheIsDirty && !usePackEngine) {
+        if (useCache && libCacheIsDirty && !usePackedEngine) {
             try {
                 await cache.set(libpath, `libs`, libcacheVersion);
                 new_caches.push({ name: "libs", version: libcacheVersion });
