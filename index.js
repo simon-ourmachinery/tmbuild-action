@@ -235,10 +235,12 @@ async function build_engine(clang, build_config, project, package) {
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            myOutput += data.toString();
+            let res = utils.parseForError(data.toString());
+            global.log_out_content += res.length != 0 ? res : "";
         },
         stderr: (data) => {
-            myError += data.toString();
+            let res = utils.parseForError(data.toString());
+            global.log_out_content += res.length != 0 ? res : "";
         }
     };
     options.silent = !core.isDebug();
@@ -251,20 +253,10 @@ async function build_engine(clang, build_config, project, package) {
             await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}`, [], options)
         }
         core.info("success! before parseForError()");
-        let res = utils.parseForError(myOutput);
-        global.log_out_content += res.length != 0 ? res : "";
-        res = utils.parseForError(myError);
-        global.log_out_content += res.length != 0 ? res : "";
         core.info("success!");
         return true;
     } catch (e) {
         core.info("error! before parseForError()");
-        let res = utils.parseForError(myOutput);
-        global.log_out_content += res.length != 0 ? res : "";
-        res = utils.parseForError(myError);
-        global.log_out_content += res.length != 0 ? res : "";
-        core.info(myOutput);
-        core.info(myError);
         core.info(`${e.message}`);
         core.info("error!");
         return false;
