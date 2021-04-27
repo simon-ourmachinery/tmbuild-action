@@ -52,6 +52,21 @@ async function install(tool, alternativeRepo) {
 }
 exports.install = install;
 
+/** 
+ * Downloads the engine and unzips 
+ * @param  engineURL url to the engine 
+ * @param  location location where to unpack engine by default "./" 
+ */
+async function downloadEngine(engineURL, location) {
+    core.startGroup(`[tmbuild-action] download engine ${engineURL}`);
+    location = location == undefined ? "./" : location;
+    const zipPath = await tc.downloadTool(`${engineURL}`);
+    let extractedFolder = await tc.extractZip(zipPath, location);
+    core.endGroup();
+    return extractedFolder;
+}
+exports.downloadEngine = downloadEngine;
+
 /**
  * executes a tool from provided path
  * @param tool name of the tool or path to tool

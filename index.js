@@ -4,207 +4,309 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const tc = require('@actions/tool-cache');
 
-
-
-// internal dependencies
-const utils = require("./internal/utils");
-const tools = require("./internal/tools");
-const build = require("./internal/build");
-const cache = require("./internal/cache");
-const os = require("os");
+const os = require('os');
 const fs = require('fs');
+const { report } = require('process');
+
 
 global.log_out_content = "";
+const engine_lib_json_path = "./utils/libs.json";
 
-global.log_out_content = "";
+// build from source:
+//
+// 1. build tmbuild
+// 2. download dependencies
+// 3. build the engine
+//
+// build with zipped binary
+// 1. download binary
+// 2. unzip binary
+// 3. build project
 
-async function build_tmbuild(buildconfig, ending) {
-    await build.make();
-    await build.build_tmbuild();
-    await utils.cp(`./bin/${buildconfig}/tmbuild${ending}`, `./bin/tmbuild/${buildconfig}`);
+
+function parse_libs_file(lib_path) {
+    if (fs.existsSync(`${lib_path}/libs.json`)) {
+        return JSON.parse(fs.readFileSync(`${lib_path}/libs.json`));
+    } else {
+        throw new Error(`cannot load libfile: ${lib_path}/libs.json`);
+    }
+}
+
+function get_lib_path() {
+    const libpath = core.getInput("libpath");
+    if (process.env.TM_LIB_DIR && libpath === './lib') {
+        core.debug(`make use of environment variable`);
+        return process.env.TM_LIB_DIR;
+    } else {
+        return libpath;
+    }
+}
+
+function get_lib(libjson, lib) {
+    let osname = os.platform();
+    osname = (osname == "win32") ? "windows" : (osname == "darwin") ? "osx" : "linux";
+    for (const [key, value] of Object.entries(libjson)) {
+        if (value.role == lib) {
+            if (value['target-platforms'] != undefined) {
+                if (value['target-platforms'][0] == osname) return value;
+            }
+            if (value['build-platforms'] != undefined) {
+                if (value['build-platforms'][0] == osname) return value;
+            }
+        }
+    }
+    throw new Error(`cannot find lib: ${lib}`);
+}
+
+function report(status, stage) {
+    if (!status) {
+        core.setFailed(`Build Failed in stage ${stage}`);
+    }
+    const regex = /(^")|("$)/gm;
+    const subst = ``;
+    const result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
+    core.setOutput(`result`, result);
+}
+
+async function premake(args) {
+    const mode = core.getInput("mode");
+    const path = core.getInput("path");
+    const lib_json_file_path = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : path;
+    const lib_json = parse_libs_file(lib_json_file_path);
+    const ending = (os.platform() == "win32") ? ".exe" : "";
+    const premake = get_lib(lib_json, "premake");
+    const get_lib_path = get_lib_path();
+    // make sure path exists:
+    const toolCall = `${get_lib_path}/${premake.lib}/premake5${ending}`;
+    if (!fs.existsSync(toolCall)) throw new Error(`Error: Could not find premake here: ${toolCall}`);
+    let myOutput = '';
+    let myError = '';
+    const options = {};
+    options.listeners = {
+        stdout: (data) => {
+            myOutput += data.toString();
+        },
+        stderr: (data) => {
+            myError += data.toString();
+        }
+    };
+    options.silent = !core.isDebug();
+    try {
+        await chmod(toolCall);
+        if (os.platform() == "linux") {
+            await e.exec(`xvfb-run --auto-servernum ${toolCall} ${args}`, [], options);
+        } else {
+            await e.exec(`${toolCall} ${args}`, [], options);
+        }
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res.length != 0 ? res : "";
+        core.info(`$[${toolCall} ${args}]>>\n${myOutput}\n`);
+        return true;
+    } catch (e) {
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res.length != 0 ? res : "";
+        res = utils.parseForError(myError)
+        global.log_out_content += res.length != 0 ? res : "";
+        core.info(`$[${toolCall} ${args}]>>\n${myOutput}\n\n${myError}\n`);
+        throw new Error(e.message);
+        return false;
+    }
+}
+async function download(mode, tmbuild_repository, libpath, cache) {
+    try {
+        const path = core.getInput("path");
+        const lib_json_file_path = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : path;
+        const lib_json = parse_libs_file(lib_json_file_path);
+        let osname = os.platform();
+        osname = (osname == "win32") ? "windows" : (osname == "darwin") ? "osx" : "linux";
+        for (const [key, value] of Object.entries(lib_json)) {
+            if (value['target-platforms'] != undefined) {
+                if (value['target-platforms'][0] == osname) {
+                    const tool_name = value.lib;
+                    const tool_url = `${tmbuild_repository}${tool_name}.zip`;
+                    utils.info(`Download ${tool_url}`);
+                    const zip_path = await tc.downloadTool(`${tool_url}`);
+                    let extractedFolder = await tc.extractZip(zip_path, libpath);
+                    utils.info(`Extracted ${extractedFolder}`);
+                    return true;
+                }
+            }
+            if (value['build-platforms'] != undefined) {
+                if (value['build-platforms'][0] == osname) {
+                    const tool_name = value.lib;
+                    const tool_url = `${tmbuild_repository}${tool_name}.zip`;
+                    utils.info(`Download ${tool_url}`);
+                    const zip_path = await tc.downloadTool(`${tool_url}`);
+                    let extractedFolder = await tc.extractZip(zip_path, libpath);
+                    utils.info(`Extracted ${extractedFolder}`);
+                    return true;
+                }
+            }
+        }
+    } catch (e) {
+        core.error(`${e.message}`);
+    }
+    return false;
+}
+async function build_tmbuild(build_config) {
+    core.debug(`build platform os: ${os.platform()}`);
+    core.info(`build config: ${build_config}`);
+    // setup logging:
+    let myOutput = '';
+    let myError = '';
+    const options = {};
+    options.listeners = {
+        stdout: (data) => {
+            myOutput += data.toString();
+        },
+        stderr: (data) => {
+            myError += data.toString();
+        }
+    };
+    options.silent = !core.isDebug();
+    // building tmbuild:
+    try {
+        if (os.platform() == "linux") {
+            await exec.exec(`make tmbuild config=${build_config.toLowerCase()}_linux`, [], options)
+        } else
+            if (os.platform() == "win32") {
+                await exec.exec(`msbuild.exe "build/tmbuild/tmbuild.vcxproj" /p:Configuration="${build_config} Win64" /p:Platform=x64`, [], options)
+            } else
+                if (os.platform() == "darwin") {
+                    await exec.exec(`xcodebuild -project build/tmbuild/tmbuild.xcodeproj -configuration ${build_config}`, [], options)
+                }
+        if (options.silent) {
+            core.info(`\n${myOutput}\n`);
+        }
+        // move tmbuild:
+        const ending = (os.platform() == "win32") ? ".exe" : "";
+        if (fs.existsSync(`./bin/${build_config}/tmbuild${ending}`)) {
+            await utils.cp(`./bin/${build_config}/tmbuild${ending}`, `./bin/tmbuild/${build_config}`);
+        }
+
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res.length != 0 ? res : "";
+        res = utils.parseForError(myError);
+        global.log_out_content += res.length != 0 ? res : "";
+        return true;
+    } catch (e) {
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res.length != 0 ? res : "";
+        res = utils.parseForError(myError);
+        global.log_out_content += res.length != 0 ? res : "";
+        core.info(myOutput);
+        core.info(myError);
+        core.info(`${e.message}`);
+        return false;
+    }
+}
+
+async function build_engine(clang, build_config, project, package) {
+    const mode = core.getInput("mode");
+    const path = core.getInput("path");
+    const ending = (os.platform() == "win32") ? ".exe" : "";
+    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${path}bin/tmbuild/tmbuild${ending}` : `${path}bin/tmbuild${ending}`;
+    const usegendoc = core.getInput("gendoc") === 'true';
+    const useclang = (clang) ? "--clang" : "";
+    const gendoc = (usegendoc) ? "--gen-doc" : "";
+    core.info(`build: ${gendoc}`);
+
+    // setup logging:
+    let myOutput = '';
+    let myError = '';
+    const options = {};
+    options.listeners = {
+        stdout: (data) => {
+            myOutput += data.toString();
+        },
+        stderr: (data) => {
+            myError += data.toString();
+        }
+    };
+    options.silent = !core.isDebug();
+    try {
+        if (package.length != 0) {
+            await exec.exec(`${tmbuild_path} -p ${package} ${useclang}  ${gendoc}`, [], options)
+        } else if (project.length != 0) {
+            await exec.exec(`${tmbuild_path} -c ${build_config} --project ${project} ${useclang} ${gendoc}`, [], options)
+        } else {
+            await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc}`, [], options)
+        }
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res.length != 0 ? res : "";
+        res = utils.parseForError(myError);
+        global.log_out_content += res.length != 0 ? res : "";
+        return true;
+    } catch (e) {
+        let res = utils.parseForError(myOutput);
+        global.log_out_content += res.length != 0 ? res : "";
+        res = utils.parseForError(myError);
+        global.log_out_content += res.length != 0 ? res : "";
+        core.info(myOutput);
+        core.info(myError);
+        core.info(`${e.message}`);
+        return false;
+    }
 }
 
 (async () => {
-    let caches = [];
-    let new_caches = [];
+    // meta:
+    const mode = core.getInput("mode");
+    core.debug(`Mode: ${mode}`);
+    const clang = core.getInput("clang") === 'true';
+    core.debug(`Use Clang: ${clang}`);
+    const package = core.getInput("package");
+    core.debug(`Package: ${package}`);
+    const project = core.getInput("project");
+    core.debug(`Project: ${project}`);
+    const build_config = core.getInput("config");
+    core.debug(`Build Config: ${build_config}`);
+    const tmbuild_repository = core.getInput("tmbuild_repository");
+    core.debug(`tmbuild repository: ${tmbuild_repository}`);
+    const binary_repository = core.getInput("binary_repository");
+    core.debug(`binary_repository: ${binary_repository}`);
+    const cache = core.getInput("cache") === 'true';
+    core.debug(`use cache: ${cache}`);
+    const libpath = get_lib_path();
+    core.debug(`lib path: ${libpath}`);
+    const path = core.getInput("path");
+    core.debug(`folder: ${path}`);
     try {
-        const usePackedEngine = utils.getInput("usePackedEngine") === 'true';
-        const canBuild = utils.getInput("build") === 'true';
-        let buildtmbuild = utils.getInput("buildtmbuild") === 'true';
-        const libpath = utils.getInput("libpath");
-        const buildconfig = utils.getInput("buildconfig");
-        const libjson = utils.parseLibsFile(utils.getInput("libjsonpath"));
-        // cache settings:
-        const cacheLibs = utils.getInput("cacheLibs") === 'true';
-        const useCache = utils.getInput("useCache") === 'true';
-        const cacheVersion = await tools.hash("./utils/tmbuild/tmbuild.c");
-        const libcacheVersion = await tools.hash(`${utils.getInput("libjsonpath")}/libs.json`);
-        const unittestcacheVersion = await tools.hash(`./unit_test/unit_test.c`) + "_" + await tools.hash(`./unit_test/unit_test_renderer.c`);
-        const ending = (os.platform() == "win32") ? ".exe" : "";
-        // if true package and cache at the end libs and tmbuild      
-        let libCacheIsDirty = false;
-        let tmbuildCacheIsDirty = false;
-        let unittestCacheIsDirty = true;
-        // artifact
-        const packageArtifact = utils.getInput("packageArtifact") === 'true';
-        if (!usePackedEngine) {
-            // downloads the cache and if cache does not exist it will install it:
-            if (useCache) {
-                // download cached libs (dependencies)
-                if (cacheLibs) {
-                    try {
-                        core.startGroup("[tmbuild-action] get cached dependencies");
-                        await cache.get("libs", libcacheVersion);
-                        caches.push({ name: "libs", version: libcacheVersion });
-                        core.endGroup();
-                    } catch (e) {
-                        utils.info(e.message);
-                        await tools.install("bearssl");
-                        await tools.install("premake5");
-                        if (os.platform() != "win32") {
-                            const toolObject = utils.getLib(libjson, "premake5");
-                            const toolname = toolObject.lib;
-                            await tools.chmod(`${libpath}/${toolname}/premake5`);
-                        }
-                        libCacheIsDirty = true;
-                    }
-                }
-                // downloads cached tmbuild version
-                if (!buildtmbuild) {
-                    core.startGroup(`[tmbuild-action] get cached tmbuild-${buildconfig}`);
-                    try {
-                        await cache.get(`tmbuild`, cacheVersion);
-                        caches.push({ name: "tmbuild", version: cacheVersion });
-                    } catch (e) {
-                        utils.info(e.message);
-                        await build_tmbuild(buildconfig, ending);
-                        tmbuildCacheIsDirty = true;
-                    }
-                    core.endGroup();
-                }
-
-                core.startGroup(`[tmbuild-action] get cached unit-test-${buildconfig}`);
+        if (mode === 'engine' || mode === 'Engine') {
+            if (!await core.group("download dependencies", download(mode, tmbuild_repository, libpath, cache))) {
+                await report(false, "download dependencies");
+                return;
+            }
+            if (!await core.group("premake", (async () => {
+                // run premake:
                 try {
-                    await cache.get(`unit-test`, unittestcacheVersion);
-                    caches.push({ name: "unit-test", version: unittestcacheVersion });
-                    await utils.cp(`./bin/unit_test/${buildconfig}/unit-test${ending}`, `./bin`);
-                    unittestCacheIsDirty = false;
-                } catch (e) {
-                    utils.info("Cannot get unit test from cache");
-                }
-                core.endGroup();
-
-            } else {
-                await tools.install("bearssl");
-                await tools.install("premake5");
-                if (os.platform() != "win32") {
-                    const toolObject = utils.getLib(libjson, "premake5");
-                    const toolname = toolObject.lib;
-                    await tools.chmod(`${libpath}/${toolname}/premake5`);
-                }
-            }
-
-            // cache tmbuild if needed
-            if (useCache && tmbuildCacheIsDirty) {
-                try {
-                    await cache.set(`./bin/tmbuild/${buildconfig}`, `tmbuild`, cacheVersion);
-                    new_caches.push({ name: "tmbuild", version: cacheVersion });
-                } catch (e) {
-                    utils.warning(`There was an error with setting the cache for tmbuild ${e.message}`);
-                    // make sure we recover from error and build tmbuild again....
-                    buildtmbuild = true;
-                    tmbuildCacheIsDirty = false;
-                }
-            }
-
-            // build tmuild if needed
-            if (buildtmbuild && !tmbuildCacheIsDirty) {
-                await build_tmbuild(buildconfig, ending);
-            }
-        }
-
-        // build engine or project
-        if (canBuild) {
-            await build.tmbuild(utils.getInput("package"));
-            if (useCache && unittestCacheIsDirty) {
-                try {
-                    await utils.cp(`./bin/${buildconfig}/unit-test${ending}`, `./bin/unit_test/${buildconfig}`);
-                    try {
-                        const toolPath = utils.getLibPath(libjson, "unit-test");
-                        if (fs.existsSync(toolPath)) {
-                            await cache.set(toolPath, `unit-test`, unittestcacheVersion);
-                            new_caches.push({ name: "unit-test", version: unittestcacheVersion });
-                        } else {
-                            utils.info(`There was an error with setting the cache for unit-test, ${toolPath} could not be found`);
-                        }
-                    } catch (e) {
-                        utils.info(`There was an error with setting the cache for unit-test: ${e.message}`);
+                    if (os.platform() == "linux") {
+                        await premake("--file=premake5.lua gmake");
+                    } else if (os.platform() == "win32") {
+                        await premake("--file=premake5.lua vs2019");
+                    } else if (os.platform() == "darwin") {
+                        await premake("--file=premake5.lua xcode4");
                     }
+                    return true;
                 } catch (e) {
-                    utils.info(`There was an error with setting the cache for unit-test, ./bin/${buildconfig}/uint-test${ending} could not be found.\nPossible reason the build failed.`);
+                    core.error(e.message);
+                    return false;
                 }
+            })())) {
+                await report(false, "premake");
+                return;
             }
-        }
-
-        if (useCache && libCacheIsDirty && !usePackedEngine) {
-            try {
-                await cache.set(libpath, `libs`, libcacheVersion);
-                new_caches.push({ name: "libs", version: libcacheVersion });
-            } catch (e) {
-                utils.warning(`There was an error with setting the cache for libs ${e.message}`);
+            if (!await core.group("build tmbuild", build_tmbuild(build_config))) {
+                await report(false, "build tmbuild");
+                return;
             }
+            if (!await core.group("build engine", build_engine(clang, build_config, project, package))) {
+                await report(false, "build the engine");
+                return;
+            }
+            report(true, "finished");
         }
-
-        const currentDate = new Date();
-        const date = currentDate.getDate();
-        const month = currentDate.getMonth();
-        const year = currentDate.getFullYear();
-        const now = `${date}-${month}-${year}`;
-
-        if (utils.getInput("artifact") === 'true') {
-            core.startGroup(`[tmbuild-action] store artifacts`);
-            await tools.storeFolder(`bin-${buildconfig}-${now}`, `./bin/${buildconfig}`);
-            await tools.storeFolder(`build-${buildconfig}-${now}`, `./build`);
-            core.endGroup();
-        }
-
-        if (utils.getInput("package").length != 0 && packageArtifact) {
-            core.startGroup(`[tmbuild-action] store package artifacts`);
-            await tools.storeFile(`package-${buildconfig}-${now}`, `./build/*.zip`);
-            core.endGroup()
-        } else {
-            utils.info("info: packaged project but did not store the artifacts because `packageArtifact` is false");
-        }
-        const regex = /(^")|("$)/gm;
-        const subst = ``;
-        const result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
-        core.setOutput('result', result);
-
     } catch (e) {
-        core.setFailed(e.message);
-        const regex = /(^")|("$)/gm;
-        const subst = ``;
-        const result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
-        core.setOutput(`result`, result);
-
-        const currentDate = new Date();
-        const date = currentDate.getDate();
-        const month = currentDate.getMonth();
-        const year = currentDate.getFullYear();
-        const now = `${date}-${month}-${year}`;
-
-        if (utils.getInput("artifact") === 'true') {
-            core.startGroup(`[tmbuild-action] store artifacts`);
-            await tools.storeFolder(`bin-${now}`, `./bin`);
-            await tools.storeFolder(`build-${now}`, `./build`);
-            core.endGroup();
-        }
+        report(false, e.message);
     }
-
-    core.startGroup(`[tmbuild-action] caches`);
-    core.info("Caches:");
-    caches.forEach(element => core.info(`name: ${element.name}  version: ${element.version}`));
-    core.info("New Caches:");
-    new_caches.forEach(element => core.info(`name: ${element.name}  version: ${element.version}`));
-    core.endGroup();
 })();

@@ -1,57 +1,43 @@
 name: 'tmbuild action'
 description: 'Wrapper around tmbuild'
 inputs:
-# build settings:
   clang:
     description: "Uses clang on windows?"
     default: false
-  buildconfig:
+  mode:
+    description: 'Building the Engine or a Plugin. Values: Engine or Plugin'
+    default: "Engine"
+  config:
       description: 'Debug or Release'
       default: "Debug"
-  # options
-  build:
-    description: 'Will build tm'
-    default: true
-  package:
-    description: 'Package the engine'
-    default: ""
-  gendoc:
-    description: 'Will generate a doc'
-    default: false
-  buildtmbuild:
-      description: 'Will build tmbuild itself'
-      default: false
-  # config optional:
-  libjsonpath:
-      description: 'path to libs.json'
-      default: "./"
+  tmbuild_repository:
+    description: "repository used to download the dependencies for tmbuild"
+    default: "https://ourmachinery.com/lib/"
   libpath:
-      description: 'path to libs'
-      default: "./lib"
-  repo:
-      description: 'repository for the dependencies'
-      default: "https://ourmachinery.com/lib/"
-  usePackedEngine:
-      description: 'If set to true the action assumes that the engine has been unpacked in in the ./ directory. Will not build tmbuild nor unit-test or the engine itself'
-      default: false
+    description: "path to the libs folder. If not provided the env variable TM_SDK_LIB_DIR will be used"
+    default: "./lib"
+  binary_repository:
+    default: Null
+    description: "repository used to download the engine binary"
   project:
     description: 'Will build a specific project'
     default: ""
-  # cache settings:
-  cacheVersion:
-    default: "1.0.0"
-  useCache:
-    default: true
-  cacheLibs:
-    description: 'Will cache the ./lib folder after tmbuild ran to cache all libs'
-    default: true
-  # artifacts:
-  artifact:
-    description: 'Stores build artifacts'
+  package:
+    description: 'Package the engine based on the provided package file.'
+    default: ""
+  gendoc:
+    description: 'Generates a doc'
     default: false
-  packageArtifact:
-    description: 'Stores package artifacts'
-    default: false     
+  genhash:
+    description: 'Runs the hash tool before build'
+    default: false
+  clang:
+    description: "Uses clang on windows?"
+    default: false
+  cache:
+    default: true
+  path:
+    default: "./"
 outputs:
   result: # id of output
     description: 'the result of the build step'
