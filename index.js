@@ -5,7 +5,7 @@ const exec = require('@actions/exec');
 const tc = require('@actions/tool-cache');
 
 const utils = require("./internal/utils");
-const cache = require("./internal/cache");
+const gh_cache = require("./internal/cache");
 
 const os = require('os');
 const fs = require('fs');
@@ -126,12 +126,12 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                 }
                 // try get cache:
                 try {
-                    await cache.get("tmbuild", cache_version);
+                    await gh_cache.get("tmbuild", cache_version);
                 } catch (e) {
                     core.info("Need to re-build tmbuild");
                 }
                 try {
-                    await cache.get("libs", version);
+                    await gh_cache.get("libs", version);
                 } catch (e) {
                     core.info("Need to download libs");
                 }
@@ -333,13 +333,13 @@ async function build_engine(clang, build_config, project, package) {
                     }
                     // try get cache:
                     try {
-                        await cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, cache_version);
+                        await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, cache_version);
                         core.info("Cached tmbuild!");
                     } catch (e) {
                         core.info(`Failed to cache tmbuild ${e.message}`);
                     }
                     try {
-                        await cache.set(libpath, "libs", version);
+                        await gh_cache.set(libpath, "libs", version);
                         core.info("Cached libs!");
                     } catch (e) {
                         core.info(`Failed to cache libs ${e.message}`);
