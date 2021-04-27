@@ -3,8 +3,6 @@ const exec = require('@actions/exec');
 const os = require('os');
 const fs = require('fs');
 const yaml = require('js-yaml');
-const { tmbuild } = require('./build');
-
 
 function info(msg) {
     core.info(`[tmbuild-action] ${msg}`);
@@ -24,7 +22,6 @@ function warning(msg) {
 exports.error = warning;
 
 
-
 async function cp(src, dest) {
     core.startGroup(`[tmbuild-action] copy files src: ${src} dest: ${dest}`);
     if (os.platform() == "win32") {
@@ -37,15 +34,6 @@ async function cp(src, dest) {
     core.endGroup();
 }
 exports.cp = cp;
-async function cpDir(src, dest) {
-    if (os.platform() == "win32") {
-        await cp(`${src}/*`, dest);
-    } else {
-        await cp(src, dest);
-    }
-}
-exports.cpDir = cpDir;
-
 
 function seg_fault(str) {
     const regex = /Segmentation fault \(core dumped\)/gm;
@@ -170,83 +158,29 @@ function parseForError(content) {
     }
 }
 
-function parseLibsFile(libpath) {
-    if (fs.existsSync(`${libpath}/libs.json`)) {
-        return JSON.parse(fs.readFileSync(`${libpath}/libs.json`));
-    } else {
-        throw new Error(`cannot load libfile: ${libpath}/libs.json`);
-    }
-}
-/**
- * loads lib information from libs.json
- * @param libjson libjson to parse
- * @param lib name
- */
-function getLib(libjson, lib) {
-    let osname = os.platform();
-    osname = (osname == "win32") ? "windows" : (osname == "darwin") ? "osx" : "linux";
-    for (const [key, value] of Object.entries(libjson)) {
-        if (value.role == lib) {
-            if (value['target-platforms'] != undefined) {
-                if (value['target-platforms'][0] == osname) return value;
-            }
-            if (value['build-platforms'] != undefined) {
-                if (value['build-platforms'][0] == osname) return value;
-            }
-        }
-    }
-    throw new Error(`cannot find lib: ${lib}`);
-}
-
-
-function getLibPath(libjson, lib) {
-    const usePackedEngine = utils.getInput("usePackedEngine") === 'true';
-    if (lib != "tmbuild" && lib != "unit-test") {
-        const libobject = getLib(libjson, lib);
-        const libfolder = getInput("libpath");
-        return `${libfolder}/${libobject.lib}`;
-    } else if (lib == "tmbuild") {
-        if (usePackedEngine) {
-            const buildconfig = getInput("buildconfig");
-            return `./bin/tmbuild/${buildconfig}`;
-        } else {
-            return "./bin";
-        }
-    } else {
-        if (usePackedEngine) {
-            const buildconfig = getInput("buildconfig");
-            return `./bin/unit_test/${buildconfig}`;
-        } else {
-            return "./bin";
-        }
-    }
-}
-
-
-const args = process.argv.slice(2);
-let inputs = null;
-let isDebug = false;
-if (args.length >= 1 && args[0] == "debug") {
-    isDebug = true;
-    process.env.RUNNER_TOOL_CACHE = "./cache";
-    process.env.RUNNER_TEMP = "./tmp";
-    process.env.RUNNER_DEBUG = "1";
-    try {
-        inputs = yaml.safeLoad(fs.readFileSync('action.yaml', 'utf8'))['inputs'];
-    } catch (e) {
-        info(e.message);
-    }
-}
-
-function getInput(key) {
-    if (isDebug) {
-        return inputs[key].default;
-    }
-    return core.getInput(key);
-}
-
-exports.parseLibsFile = parseLibsFile;
-exports.getLib = getLib;
 exports.parseForError = parseForError;
-exports.getInput = getInput;
-exports.getLibPath = getLibPath;
+
+
+async function hash(file) {
+    let myOutput = '';
+    let myError = '';
+    const options = {};
+    options.listeners = {
+        stdout: (data) => {
+            myOutput += data.toString();
+        },
+        stderr: (data) => {
+            myError += data.toString();
+        }
+    };
+    options.silent = !core.isDebug();
+    try {
+        if (!fs.existsSync(file)) throw new Error(`Error: Could not find ${file}`);
+        await exec.exec(`git hash-object ${file}`, [], options);
+        return myOutput;
+    } catch (e) {
+        utils.info(`There was an error with git hash-object ${file}`);
+        throw new Error(e.message);
+    }
+}
+exports.hash = hash;

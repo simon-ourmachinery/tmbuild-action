@@ -5,6 +5,8 @@ const exec = require('@actions/exec');
 const tc = require('@actions/tool-cache');
 
 const utils = require("./internal/utils");
+const cache = require("./internal/cache");
+
 const os = require('os');
 const fs = require('fs');
 
@@ -12,16 +14,6 @@ const fs = require('fs');
 global.log_out_content = "";
 const engine_lib_json_path = "./utils/libs.json";
 
-// build from source:
-//
-// 1. build tmbuild
-// 2. download dependencies
-// 3. build the engine
-//
-// build with zipped binary
-// 1. download binary
-// 2. unzip binary
-// 3. build project
 
 
 function parse_libs_file(lib_path) {
@@ -116,10 +108,38 @@ async function premake(args) {
         return false;
     }
 }
+
 async function download(mode, tmbuild_repository, libpath, cache) {
     try {
         const path = core.getInput("path");
         const dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : path;
+
+        if (cache) {
+            try {
+                const utils_dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : `${path}code/utils`;
+                const cache_version = await tools.hash(`${utils_dir}/tmbuild/tmbuild.c`);
+                let version = "";
+                if (mode === 'engine' || mode === 'Engine') {
+                    version = await tools.hash(`${path}/libs.json`);
+                } else {
+                    version = await tools.hash(`${utils_dir}/libs.json`);
+                }
+                // try get cache:
+                try {
+                    await cache.get("tmbuild", cache_version);
+                } catch (e) {
+                    core.info("Need to re-build tmbuild");
+                }
+                try {
+                    await cache.get("libs", version);
+                } catch (e) {
+                    core.info("Need to download libs");
+                }
+            } catch (e) {
+                core.info(`cannot get cache: ${e.message}`);
+            }
+        }
+
         if (mode === 'engine' || mode === 'Engine') {
             const lib_json = parse_libs_file(dir);
             let osname = os.platform();
@@ -129,28 +149,28 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                     if (value['target-platforms'][0] == osname) {
                         const tool_name = value.lib;
                         const tool_url = `${tmbuild_repository}${tool_name}.zip`;
-                        utils.info(`Download ${tool_url}`);
+                        core.info(`Download ${tool_url}`);
                         const zip_path = await tc.downloadTool(`${tool_url}`);
                         let extractedFolder = await tc.extractZip(zip_path, libpath);
-                        utils.info(`Extracted ${extractedFolder}`);
+                        core.info(`Extracted ${extractedFolder}`);
                     }
                 }
                 if (value['build-platforms'] != undefined) {
                     if (value['build-platforms'][0] == osname) {
                         const tool_name = value.lib;
                         const tool_url = `${tmbuild_repository}${tool_name}.zip`;
-                        utils.info(`Download ${tool_url}`);
+                        core.info(`Download ${tool_url}`);
                         const zip_path = await tc.downloadTool(`${tool_url}`);
                         let extractedFolder = await tc.extractZip(zip_path, libpath);
-                        utils.info(`Extracted ${extractedFolder}`);
+                        core.info(`Extracted ${extractedFolder}`);
                     }
                 }
             }
         } else {
-            utils.info(`Download ${tmbuild_repository}`);
+            core.info(`Download ${tmbuild_repository}`);
             const zip_path = await tc.downloadTool(`${tmbuild_repository}`);
             let extractedFolder = await tc.extractZip(zip_path, libpath);
-            utils.info(`Extracted ${extractedFolder}`);
+            core.info(`Extracted ${extractedFolder}`);
         }
         return true;
     } catch (e) {
@@ -216,8 +236,6 @@ async function build_engine(clang, build_config, project, package) {
     const genhash = (usegenhash) ? "--gen-hash" : "";
 
     // setup logging:
-    let myOutput = '';
-    let myError = '';
     const options = {};
     options.listeners = {
         stdout: (data) => {
@@ -301,6 +319,34 @@ async function build_engine(clang, build_config, project, package) {
             if (!await core.group("build engine", async () => { return build_engine(clang, build_config, project, package); })) {
                 await report(false, "build the engine");
                 return;
+            }
+            if (cache) {
+                // set cache:
+                try {
+                    const utils_dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : `${path}code/utils`;
+                    const cache_version = await tools.hash(`${utils_dir}/tmbuild/tmbuild.c`);
+                    let version = "";
+                    if (mode === 'engine' || mode === 'Engine') {
+                        version = await tools.hash(`${path}/libs.json`);
+                    } else {
+                        version = await tools.hash(`${utils_dir}/libs.json`);
+                    }
+                    // try get cache:
+                    try {
+                        await cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, cache_version);
+                        core.info("Cached tmbuild!");
+                    } catch (e) {
+                        core.info("Failed to cache tmbuild");
+                    }
+                    try {
+                        await cache.set(libpath, "libs", version);
+                        core.info("Cached libs!");
+                    } catch (e) {
+                        core.info("Need to download libs");
+                    }
+                } catch (e) {
+                    core.info(`cannot get cache: ${e.message}`);
+                }
             }
             report(true, "finished");
         } else if (mode === 'plugin' || mode === 'Plugin') {
