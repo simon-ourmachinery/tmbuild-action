@@ -31,9 +31,6 @@ inputs:
   genhash:
     description: 'Runs the hash tool before build'
     default: false
-  clang:
-    description: "Uses clang on windows?"
-    default: false
   cache:
     default: true
   path:
