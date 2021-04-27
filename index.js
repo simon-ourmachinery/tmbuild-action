@@ -119,31 +119,38 @@ async function premake(args) {
 async function download(mode, tmbuild_repository, libpath, cache) {
     try {
         const path = core.getInput("path");
-        const lib_json_file_path = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : path;
-        const lib_json = parse_libs_file(lib_json_file_path);
-        let osname = os.platform();
-        osname = (osname == "win32") ? "windows" : (osname == "darwin") ? "osx" : "linux";
-        for (const [key, value] of Object.entries(lib_json)) {
-            if (value['target-platforms'] != undefined) {
-                if (value['target-platforms'][0] == osname) {
-                    const tool_name = value.lib;
-                    const tool_url = `${tmbuild_repository}${tool_name}.zip`;
-                    utils.info(`Download ${tool_url}`);
-                    const zip_path = await tc.downloadTool(`${tool_url}`);
-                    let extractedFolder = await tc.extractZip(zip_path, libpath);
-                    utils.info(`Extracted ${extractedFolder}`);
+        const dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : path;
+        if (mode === 'engine' || mode === 'Engine') {
+            const lib_json = parse_libs_file(dir);
+            let osname = os.platform();
+            osname = (osname == "win32") ? "windows" : (osname == "darwin") ? "osx" : "linux";
+            for (const [key, value] of Object.entries(lib_json)) {
+                if (value['target-platforms'] != undefined) {
+                    if (value['target-platforms'][0] == osname) {
+                        const tool_name = value.lib;
+                        const tool_url = `${tmbuild_repository}${tool_name}.zip`;
+                        utils.info(`Download ${tool_url}`);
+                        const zip_path = await tc.downloadTool(`${tool_url}`);
+                        let extractedFolder = await tc.extractZip(zip_path, libpath);
+                        utils.info(`Extracted ${extractedFolder}`);
+                    }
+                }
+                if (value['build-platforms'] != undefined) {
+                    if (value['build-platforms'][0] == osname) {
+                        const tool_name = value.lib;
+                        const tool_url = `${tmbuild_repository}${tool_name}.zip`;
+                        utils.info(`Download ${tool_url}`);
+                        const zip_path = await tc.downloadTool(`${tool_url}`);
+                        let extractedFolder = await tc.extractZip(zip_path, libpath);
+                        utils.info(`Extracted ${extractedFolder}`);
+                    }
                 }
             }
-            if (value['build-platforms'] != undefined) {
-                if (value['build-platforms'][0] == osname) {
-                    const tool_name = value.lib;
-                    const tool_url = `${tmbuild_repository}${tool_name}.zip`;
-                    utils.info(`Download ${tool_url}`);
-                    const zip_path = await tc.downloadTool(`${tool_url}`);
-                    let extractedFolder = await tc.extractZip(zip_path, libpath);
-                    utils.info(`Extracted ${extractedFolder}`);
-                }
-            }
+        } else {
+            utils.info(`Download ${tmbuild_repository}`);
+            const zip_path = await tc.downloadTool(`${tmbuild_repository}`);
+            let extractedFolder = await tc.extractZip(zip_path, libpath);
+            utils.info(`Extracted ${extractedFolder}`);
         }
         return true;
     } catch (e) {
@@ -314,6 +321,15 @@ async function build_engine(clang, build_config, project, package) {
                 return;
             }
             report(true, "finished");
+        } else if (mode === 'plugin' || mode === 'Plugin') {
+            if (!await core.group("download engine", async () => { return download(mode, binary_repository, path, cache); })) {
+                await report(false, "download engine");
+                return;
+            }
+            if (!await core.group("build plugin", async () => { return build_engine(clang, build_config, project, package); })) {
+                await report(false, "build the engine");
+                return;
+            }
         }
     } catch (e) {
         report(false, `${e.message}`);
