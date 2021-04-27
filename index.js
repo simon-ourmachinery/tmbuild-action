@@ -272,11 +272,11 @@ async function build_engine(clang, build_config, project, package) {
     core.debug(`folder: ${path}`);
     try {
         if (mode === 'engine' || mode === 'Engine') {
-            if (!await core.group("download dependencies", async () => { download(mode, tmbuild_repository, libpath, cache); })) {
+            if (!await core.group("download dependencies", async () => { return download(mode, tmbuild_repository, libpath, cache); })) {
                 await report(false, "download dependencies");
                 return;
             }
-            if (!await core.group("premake", (async () => {
+            if (!await core.group("premake", async () => {
                 // run premake:
                 try {
                     if (os.platform() == "linux") {
@@ -291,7 +291,7 @@ async function build_engine(clang, build_config, project, package) {
                     core.error(e.message);
                     return false;
                 }
-            })())) {
+            })) {
                 await report(false, "premake");
                 return;
             }
