@@ -84,9 +84,11 @@ function contains_not_found(str) {
 
 function parseForError(content) {
     try {
+        utils.debug(content);
         let result = "";
         const has_seg_fault = seg_fault(content);
         if (content.includes("tmbuild:")) {
+            utils.debug("contains tmbuild");
             if (!content.includes("tmbuild: No unit-test executable found.")) {
                 // tmbuild error:
                 const regex_tm = /^tmbuild:(.*)$/gm;
@@ -98,7 +100,9 @@ function parseForError(content) {
                     if (m.length >= 2) {
                         core.error(m[0].trim());
                         result += `${m[0].trim()}\n`
+                        utils.debug("found error!");
                     } else {
+                        utils.debug("found error but could not parse!");
                         result += "tmbuild: failed\n";
                     }
                 }

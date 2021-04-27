@@ -199,6 +199,7 @@ async function build_tmbuild(build_config) {
         global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError);
         global.log_out_content += res.length != 0 ? res : "";
+        utils.debug("success!");
         return true;
     } catch (e) {
         let res = utils.parseForError(myOutput);
@@ -208,6 +209,7 @@ async function build_tmbuild(build_config) {
         core.info(myOutput);
         core.info(myError);
         core.info(`${e.message}`);
+        utils.debug("error!");
         return false;
     }
 }
@@ -252,6 +254,7 @@ async function build_engine(clang, build_config, project, package) {
         global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError);
         global.log_out_content += res.length != 0 ? res : "";
+        utils.debug("success!");
         return true;
     } catch (e) {
         let res = utils.parseForError(myOutput);
@@ -261,6 +264,7 @@ async function build_engine(clang, build_config, project, package) {
         core.info(myOutput);
         core.info(myError);
         core.info(`${e.message}`);
+        utils.debug("error!");
         return false;
     }
 }
