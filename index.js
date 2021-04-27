@@ -209,7 +209,8 @@ async function build_engine(clang, build_config, project, package) {
     const mode = core.getInput("mode");
     const path = core.getInput("path");
     const ending = (os.platform() == "win32") ? ".exe" : "";
-    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${path}bin/tmbuild/${build_config}/tmbuild${ending}` : `${path}bin/tmbuild${ending}`;
+    const xwindow = (os.platform() == "linux") ? "xvfb-run --auto-servernum " : "";
+    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${xwindow}${path}bin/tmbuild/${build_config}/tmbuild${ending}` : `${path}bin/tmbuild${ending}`;
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
     const usegennode = core.getInput("gennode") === 'true';
