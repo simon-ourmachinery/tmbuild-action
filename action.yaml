@@ -31,6 +31,9 @@ inputs:
   genhash:
     description: 'Runs the hash tool before build'
     default: false
+  gennode:
+    description: 'Runs the node gen tool before build'
+    default: false
   cache:
     default: true
   path:
