@@ -273,7 +273,7 @@ async function build_engine(clang, build_config, project, package) {
     core.debug(`folder: ${path}`);
     try {
         if (mode === 'engine' || mode === 'Engine') {
-            if (!await core.group("download dependencies", download(mode, tmbuild_repository, libpath, cache))) {
+            if (!await core.group("download dependencies", async () => { download(mode, tmbuild_repository, libpath, cache); })) {
                 await report(false, "download dependencies");
                 return;
             }
@@ -296,11 +296,11 @@ async function build_engine(clang, build_config, project, package) {
                 await report(false, "premake");
                 return;
             }
-            if (!await core.group("build tmbuild", build_tmbuild(build_config))) {
+            if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
                 await report(false, "build tmbuild");
                 return;
             }
-            if (!await core.group("build engine", build_engine(clang, build_config, project, package))) {
+            if (!await core.group("build engine", async () => { return build_engine(clang, build_config, project, package); })) {
                 await report(false, "build the engine");
                 return;
             }
