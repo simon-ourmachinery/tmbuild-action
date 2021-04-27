@@ -90,6 +90,8 @@ function parseForError(content) {
         if (content.includes("tmbuild:")) {
             core.info("contains tmbuild");
             if (!content.includes("tmbuild: No unit-test executable found.")) {
+                core.info("show");
+                core.info(content);
                 // tmbuild error:
                 const regex_tm = /^tmbuild:(.*)$/gm;
                 while ((m = regex_tm.exec(content)) !== null) {
