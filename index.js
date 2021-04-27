@@ -302,7 +302,7 @@ async function build_engine(clang, build_config, project, package) {
                     return false;
                 }
             })) {
-                await report(false, "premake");
+                await report(false, "run premake");
                 return;
             }
             if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
@@ -323,6 +323,7 @@ async function build_engine(clang, build_config, project, package) {
                 await report(false, "build the engine");
                 return;
             }
+            report(true, "finished");
         }
     } catch (e) {
         report(false, `${e.message}`);
