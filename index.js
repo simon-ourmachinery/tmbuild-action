@@ -253,6 +253,7 @@ async function build_engine(clang, build_config, project, package) {
         return true;
     } catch (e) {
         core.info(`${e.message}`);
+        core.info(`Output:\n${global.log_out_content}`);
         return false;
     }
 }
