@@ -128,7 +128,6 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                     const zip_path = await tc.downloadTool(`${tool_url}`);
                     let extractedFolder = await tc.extractZip(zip_path, libpath);
                     utils.info(`Extracted ${extractedFolder}`);
-                    return true;
                 }
             }
             if (value['build-platforms'] != undefined) {
@@ -139,10 +138,10 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                     const zip_path = await tc.downloadTool(`${tool_url}`);
                     let extractedFolder = await tc.extractZip(zip_path, libpath);
                     utils.info(`Extracted ${extractedFolder}`);
-                    return true;
                 }
             }
         }
+        return true;
     } catch (e) {
         core.error(`${e.message}`);
     }
