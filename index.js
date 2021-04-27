@@ -336,13 +336,13 @@ async function build_engine(clang, build_config, project, package) {
                         await cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, cache_version);
                         core.info("Cached tmbuild!");
                     } catch (e) {
-                        core.info("Failed to cache tmbuild");
+                        core.info(`Failed to cache tmbuild ${e.message}`);
                     }
                     try {
                         await cache.set(libpath, "libs", version);
                         core.info("Cached libs!");
                     } catch (e) {
-                        core.info("Need to download libs");
+                        core.info(`Failed to cache libs ${e.message}`);
                     }
                 } catch (e) {
                     core.info(`cannot get cache: ${e.message}`);
