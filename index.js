@@ -6,7 +6,6 @@ const tc = require('@actions/tool-cache');
 
 const os = require('os');
 const fs = require('fs');
-const { report } = require('process');
 
 
 global.log_out_content = "";
