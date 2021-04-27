@@ -98,9 +98,9 @@ async function premake(args) {
     try {
         await chmod(toolCall);
         if (os.platform() == "linux") {
-            await e.exec(`xvfb-run --auto-servernum ${toolCall} ${args}`, [], options);
+            await exec.exec(`xvfb-run --auto-servernum ${toolCall} ${args}`, [], options);
         } else {
-            await e.exec(`${toolCall} ${args}`, [], options);
+            await exec.exec(`${toolCall} ${args}`, [], options);
         }
         let res = utils.parseForError(myOutput);
         global.log_out_content += res.length != 0 ? res : "";
