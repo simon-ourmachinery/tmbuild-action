@@ -250,6 +250,7 @@ async function build_engine(clang, build_config, project, package) {
         } else {
             await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}`, [], options)
         }
+        utils.debug("success! before parseForError()");
         let res = utils.parseForError(myOutput);
         global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError);
@@ -257,6 +258,7 @@ async function build_engine(clang, build_config, project, package) {
         utils.debug("success!");
         return true;
     } catch (e) {
+        utils.debug("error! before parseForError()");
         let res = utils.parseForError(myOutput);
         global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError);
