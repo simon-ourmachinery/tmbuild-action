@@ -74,7 +74,7 @@ async function premake(args) {
     const lib_json_file_path = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : path;
     const lib_json = parse_libs_file(lib_json_file_path);
     const ending = (os.platform() == "win32") ? ".exe" : "";
-    const premake = get_lib(lib_json, "premake");
+    const premake = get_lib(lib_json, "premake5");
     const get_lib_path = get_lib_path();
     // make sure path exists:
     const toolCall = `${get_lib_path}/${premake.lib}/premake5${ending}`;
