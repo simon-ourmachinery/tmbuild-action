@@ -154,6 +154,7 @@ async function download(mode, tmbuild_repository, libpath, cache) {
 async function build_tmbuild(build_config) {
     core.debug(`build platform os: ${os.platform()}`);
     core.info(`build config: ${build_config}`);
+    const path = core.getInput("path");
     // setup logging:
     let myOutput = '';
     let myError = '';
@@ -183,8 +184,8 @@ async function build_tmbuild(build_config) {
         }
         // move tmbuild:
         const ending = (os.platform() == "win32") ? ".exe" : "";
-        if (fs.existsSync(`./bin/${build_config}/tmbuild${ending}`)) {
-            await utils.cp(`./bin/${build_config}/tmbuild${ending}`, `./bin/tmbuild/${build_config}`);
+        if (fs.existsSync(`${path}bin/${build_config}/tmbuild${ending}`)) {
+            await utils.cp(`${path}/bin/${build_config}/tmbuild${ending}`, `${path}bin/tmbuild/${build_config}`);
         }
 
         let res = utils.parseForError(myOutput);
@@ -208,7 +209,7 @@ async function build_engine(clang, build_config, project, package) {
     const mode = core.getInput("mode");
     const path = core.getInput("path");
     const ending = (os.platform() == "win32") ? ".exe" : "";
-    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${path}bin/tmbuild/tmbuild${ending}` : `${path}bin/tmbuild${ending}`;
+    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${path}bin/tmbuild/${build_config}/tmbuild${ending}` : `${path}bin/tmbuild${ending}`;
     const usegendoc = core.getInput("gendoc") === 'true';
     const useclang = (clang) ? "--clang" : "";
     const gendoc = (usegendoc) ? "--gen-doc" : "";
