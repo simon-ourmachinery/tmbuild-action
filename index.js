@@ -4,6 +4,7 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const tc = require('@actions/tool-cache');
 
+const utils = require("./internal/utils");
 const os = require('os');
 const fs = require('fs');
 
@@ -306,6 +307,6 @@ async function build_engine(clang, build_config, project, package) {
             report(true, "finished");
         }
     } catch (e) {
-        report(false, e.message);
+        report(false, `${e.message}`);
     }
 })();
