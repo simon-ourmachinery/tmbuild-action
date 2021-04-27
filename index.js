@@ -163,15 +163,17 @@ async function build_tmbuild(build_config) {
     core.info(`build config: ${build_config}`);
     const path = core.getInput("path");
     // setup logging:
-    let myOutput = '';
-    let myError = '';
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            myOutput += data.toString();
+            let res = utils.parseForError(data.toString());
+            process.stdout.write(data.toString());
+            global.log_out_content += res.length != 0 ? res : "";
         },
         stderr: (data) => {
-            myError += data.toString();
+            let res = utils.parseForError(data.toString());
+            process.stdout.write(data.toString());
+            global.log_out_content += res.length != 0 ? res : "";
         }
     };
     options.silent = !core.isDebug();
@@ -186,27 +188,14 @@ async function build_tmbuild(build_config) {
                 if (os.platform() == "darwin") {
                     await exec.exec(`xcodebuild -project build/tmbuild/tmbuild.xcodeproj -configuration ${build_config}`, [], options)
                 }
-        if (options.silent) {
-            core.info(`\n${myOutput}\n`);
-        }
         // move tmbuild:
         const ending = (os.platform() == "win32") ? ".exe" : "";
         if (fs.existsSync(`${path}bin/${build_config}/tmbuild${ending}`)) {
             await utils.cp(`${path}/bin/${build_config}/tmbuild${ending}`, `${path}bin/tmbuild/${build_config}`);
         }
 
-        let res = utils.parseForError(myOutput);
-        global.log_out_content += res.length != 0 ? res : "";
-        res = utils.parseForError(myError);
-        global.log_out_content += res.length != 0 ? res : "";
         return true;
     } catch (e) {
-        let res = utils.parseForError(myOutput);
-        global.log_out_content += res.length != 0 ? res : "";
-        res = utils.parseForError(myError);
-        global.log_out_content += res.length != 0 ? res : "";
-        core.info(myOutput);
-        core.info(myError);
         core.info(`${e.message}`);
         return false;
     }
@@ -233,10 +222,12 @@ async function build_engine(clang, build_config, project, package) {
     options.listeners = {
         stdout: (data) => {
             let res = utils.parseForError(data.toString());
+            process.stdout.write(data.toString());
             global.log_out_content += res.length != 0 ? res : "";
         },
         stderr: (data) => {
             let res = utils.parseForError(data.toString());
+            process.stdout.write(data.toString());
             global.log_out_content += res.length != 0 ? res : "";
         }
     };
@@ -249,11 +240,9 @@ async function build_engine(clang, build_config, project, package) {
         } else {
             await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}`, [], options)
         }
-        core.info(`${global.log_out_content}`);
         return true;
     } catch (e) {
         core.info(`${e.message}`);
-        core.info(`Output:\n${global.log_out_content}`);
         return false;
     }
 }
