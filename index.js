@@ -117,12 +117,12 @@ async function download(mode, tmbuild_repository, libpath, cache) {
         if (cache) {
             try {
                 const utils_dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : `${path}code/utils`;
-                const cache_version = await tools.hash(`${utils_dir}/tmbuild/tmbuild.c`);
+                const cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
                 let version = "";
                 if (mode === 'engine' || mode === 'Engine') {
-                    version = await tools.hash(`${path}/libs.json`);
+                    version = await utils.hash(`${path}/libs.json`);
                 } else {
-                    version = await tools.hash(`${utils_dir}/libs.json`);
+                    version = await utils.hash(`${utils_dir}/libs.json`);
                 }
                 // try get cache:
                 try {
@@ -324,12 +324,12 @@ async function build_engine(clang, build_config, project, package) {
                 // set cache:
                 try {
                     const utils_dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : `${path}code/utils`;
-                    const cache_version = await tools.hash(`${utils_dir}/tmbuild/tmbuild.c`);
+                    const cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
                     let version = "";
                     if (mode === 'engine' || mode === 'Engine') {
-                        version = await tools.hash(`${path}/libs.json`);
+                        version = await utils.hash(`${path}/libs.json`);
                     } else {
-                        version = await tools.hash(`${utils_dir}/libs.json`);
+                        version = await utils.hash(`${utils_dir}/libs.json`);
                     }
                     // try get cache:
                     try {
