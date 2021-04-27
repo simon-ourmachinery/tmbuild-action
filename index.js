@@ -42,6 +42,10 @@ function get_lib_path() {
     }
 }
 
+async function chmod(file) {
+    await exec.exec(`chmod +x ${file}`);
+}
+
 function get_lib(libjson, lib) {
     let osname = os.platform();
     osname = (osname == "win32") ? "windows" : (osname == "darwin") ? "osx" : "linux";
