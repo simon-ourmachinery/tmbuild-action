@@ -6,7 +6,7 @@ const utils = require('./utils');
 const os = require('os');
 
 async function set(toolPath, toolname, cacheVersion) {
-    const key = `${toolname}-${os.platform()}-${utils.getInput("buildconfig")}-${cacheVersion}`;
+    const key = `${toolname}-${os.platform()}-${core.getInput("config")}-${cacheVersion}`;
     const toolsCachePath = [
         `${toolPath}`
     ]
@@ -20,15 +20,8 @@ async function set(toolPath, toolname, cacheVersion) {
 }
 exports.set = set;
 
-async function get(toolname, cacheVersion) {
-    const key = `${toolname}-${os.platform()}-${utils.getInput("buildconfig")}-${cacheVersion}`;
-    let toolPath = ""
-    if (toolname != "libs") {
-        const libJson = utils.parseLibsFile(utils.getInput("libjsonpath"));
-        toolPath = utils.getLibPath(libJson, toolname);
-    } else {
-        toolPath = utils.getInput("libpath");
-    }
+async function get(toolPath, toolname, cacheVersion) {
+    const key = `${toolname}-${os.platform()}-${core.getInput("config")}-${cacheVersion}`;
     core.info(`tries to get ${toolname} from cache with path ${toolPath} with key: ${key}`);
     const toolsCachePath = [
         `${toolPath}`
