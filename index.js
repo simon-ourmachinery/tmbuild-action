@@ -199,7 +199,6 @@ async function build_tmbuild(build_config) {
         global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError);
         global.log_out_content += res.length != 0 ? res : "";
-        utils.debug("success!");
         return true;
     } catch (e) {
         let res = utils.parseForError(myOutput);
@@ -209,7 +208,6 @@ async function build_tmbuild(build_config) {
         core.info(myOutput);
         core.info(myError);
         core.info(`${e.message}`);
-        utils.info("error!");
         return false;
     }
 }
@@ -227,7 +225,6 @@ async function build_engine(clang, build_config, project, package) {
     const gendoc = (usegendoc) ? "--gen-doc" : "";
     const gennode = (usegennode) ? "--gen-nodes" : "";
     const genhash = (usegenhash) ? "--gen-hash" : "";
-    core.info(`build: ${gendoc}`);
 
     // setup logging:
     let myOutput = '';
@@ -252,13 +249,10 @@ async function build_engine(clang, build_config, project, package) {
         } else {
             await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}`, [], options)
         }
-        core.info("success! before parseForError()");
-        core.info("success!");
+        core.info(`${global.log_out_content}`);
         return true;
     } catch (e) {
-        core.info("error! before parseForError()");
         core.info(`${e.message}`);
-        core.info("error!");
         return false;
     }
 }
