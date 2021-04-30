@@ -150,7 +150,7 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                         const tool_name = value.lib;
                         const tool_url = `${tmbuild_repository}${tool_name}.zip`;
                         const dest_path = `${libpath}/${tool_name}.zip`;
-                        core.info(`Download ${tool_url}`);
+                        core.info(`Download ${tool_url} to ${dest_path}`);
                         if (!fs.existsSync(dest_path)) {
                             const zip_path = await tc.downloadTool(`${tool_url}`);
                             let extractedFolder = await tc.extractZip(zip_path, libpath);
@@ -165,7 +165,7 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                         const tool_name = value.lib;
                         const tool_url = `${tmbuild_repository}${tool_name}.zip`;
                         const dest_path = `${libpath}/${tool_name}.zip`;
-                        core.info(`Download ${tool_url}`);
+                        core.info(`Download ${tool_url} to ${dest_path}`);
                         if (!fs.existsSync(dest_path)) {
                             const zip_path = await tc.downloadTool(`${tool_url}`);
                             let extractedFolder = await tc.extractZip(zip_path, libpath);
