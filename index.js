@@ -261,7 +261,6 @@ async function build_engine(clang, build_config, project, package) {
     const gendoc = (usegendoc) ? "--gen-doc" : "";
     const gennode = (usegennode) ? "--gen-nodes" : "";
     const genhash = (usegenhash) ? "--gen-hash" : "";
-    core.info(`sdk_dir: ${sdk_dir}`);
 
     // setup logging:
     const options = {};
@@ -378,7 +377,7 @@ async function build_engine(clang, build_config, project, package) {
             }
             report(true, "finished");
         } else if (mode === 'plugin' || mode === 'Plugin') {
-            if (!await core.group("download engine", async () => { return download(mode, binary_repository, path, cache); })) {
+            if (!await core.group("download engine", async () => { return download(mode, binary_repository, process.env.GITHUB_WORKSPACE, cache); })) {
                 await report(false, "download engine");
                 return;
             }
