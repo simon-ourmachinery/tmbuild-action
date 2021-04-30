@@ -133,7 +133,8 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                     core.info(`[debug]  ${e.message}`);
                 }
                 try {
-                    await gh_cache.get(libpath, "libs", version);
+                    const lib_path = (mode === 'engine' || mode === 'Engine') ? libpath : get_lib_path();
+                    await gh_cache.get(lib_path, "libs", version);
                 } catch (e) {
                     core.info("Need to download libs");
                 }
@@ -179,10 +180,11 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                 }
             }
         } else {
-            core.info(`Download ${tmbuild_repository}`);
-            const zip_path = await tc.downloadTool(`${tmbuild_repository}`);
-            let extractedFolder = await tc.extractZip(zip_path, libpath);
+            core.info(`Download ${binary_repository}`);
+            const zip_path = await tc.downloadTool(`${binary_repository}`);
+            const extractedFolder = await tc.extractZip(zip_path, `${libpath}/engine_bin`);
             core.info(`Extracted ${extractedFolder}`);
+            core.exportVariable('TM_SDK_DIR', extractedFolder);
         }
         return true;
     } catch (e) {
