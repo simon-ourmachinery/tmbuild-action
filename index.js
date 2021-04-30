@@ -180,8 +180,8 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                 }
             }
         } else {
-            core.info(`Download ${binary_repository}`);
-            const zip_path = await tc.downloadTool(`${binary_repository}`);
+            core.info(`Download ${tmbuild_repository}`);
+            const zip_path = await tc.downloadTool(`${tmbuild_repository}`);
             const extractedFolder = await tc.extractZip(zip_path, `${libpath}/engine_bin`);
             core.info(`Extracted ${extractedFolder}`);
             core.exportVariable('TM_SDK_DIR', extractedFolder);
