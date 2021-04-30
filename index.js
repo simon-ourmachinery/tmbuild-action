@@ -261,6 +261,7 @@ async function build_engine(clang, build_config, project, package) {
     const gendoc = (usegendoc) ? "--gen-doc" : "";
     const gennode = (usegennode) ? "--gen-nodes" : "";
     const genhash = (usegenhash) ? "--gen-hash" : "";
+    core.info(`sdk_dir: ${sdk_dir}`);
 
     // setup logging:
     const options = {};
