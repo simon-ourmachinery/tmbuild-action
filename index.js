@@ -149,20 +149,30 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                     if (value['target-platforms'][0] == osname) {
                         const tool_name = value.lib;
                         const tool_url = `${tmbuild_repository}${tool_name}.zip`;
+                        const dest_path = `${libpath}/${tool_name}.zip`;
                         core.info(`Download ${tool_url}`);
-                        const zip_path = await tc.downloadTool(`${tool_url}`);
-                        let extractedFolder = await tc.extractZip(zip_path, libpath);
-                        core.info(`Extracted ${extractedFolder}`);
+                        if (!fs.existsSync(dest_path)) {
+                            const zip_path = await tc.downloadTool(`${tool_url}`);
+                            let extractedFolder = await tc.extractZip(zip_path, libpath);
+                            core.info(`Extracted ${extractedFolder}`);
+                        } else {
+                            core.info(`Found ${dest_path} already!`);
+                        }
                     }
                 }
                 if (value['build-platforms'] != undefined) {
                     if (value['build-platforms'][0] == osname) {
                         const tool_name = value.lib;
                         const tool_url = `${tmbuild_repository}${tool_name}.zip`;
+                        const dest_path = `${libpath}/${tool_name}.zip`;
                         core.info(`Download ${tool_url}`);
-                        const zip_path = await tc.downloadTool(`${tool_url}`);
-                        let extractedFolder = await tc.extractZip(zip_path, libpath);
-                        core.info(`Extracted ${extractedFolder}`);
+                        if (!fs.existsSync(dest_path)) {
+                            const zip_path = await tc.downloadTool(`${tool_url}`);
+                            let extractedFolder = await tc.extractZip(zip_path, libpath);
+                            core.info(`Extracted ${extractedFolder}`);
+                        } else {
+                            core.info(`Found ${dest_path} already!`);
+                        }
                     }
                 }
             }
