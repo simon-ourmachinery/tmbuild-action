@@ -128,7 +128,8 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                 try {
                     await gh_cache.get(`${path}/bin/tmbuild/${build_config}`, "tmbuild", cache_version);
                 } catch (e) {
-                    core.info("Need to re-build tmbuild");
+                    core.info(`Need to re-build tmbuild`);
+                    core.info(`[debug]  ${e.message}`);
                 }
                 try {
                     await gh_cache.get(libpath, "libs", version);

@@ -6,7 +6,7 @@ const utils = require('./utils');
 const os = require('os');
 
 async function set(toolPath, toolname, cacheVersion) {
-    const key = `${toolname}-${os.platform()}-${core.getInput("config")}-${cacheVersion}`;
+    const key = `${toolname}-${os.platform()}-${core.getInput("config")}-${core.getInput("mode")}-${cacheVersion}`;
     const toolsCachePath = [
         `${toolPath}`
     ]
@@ -21,7 +21,7 @@ async function set(toolPath, toolname, cacheVersion) {
 exports.set = set;
 
 async function get(toolPath, toolname, cacheVersion) {
-    const key = `${toolname}-${os.platform()}-${core.getInput("config")}-${cacheVersion}`;
+    const key = `${toolname}-${os.platform()}-${core.getInput("config")}-${core.getInput("mode")}-${cacheVersion}`;
     core.info(`tries to get ${toolname} from cache with path ${toolPath} with key: ${key}`);
     const toolsCachePath = [
         `${toolPath}`
