@@ -2,7 +2,6 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const tc = require('@actions/tool-cache');
 const cache = require('@actions/cache');
-const utils = require('./utils');
 const os = require('os');
 
 async function set(toolPath, toolname, cacheVersion) {

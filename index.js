@@ -34,6 +34,15 @@ function get_lib_path() {
     }
 }
 
+function get_sdk_dir() {
+    if (process.env.TM_SDK_DIR) {
+        core.debug(`make use of environment variable`);
+        return process.env.TM_SDK_DIR;
+    } else {
+        return core.getInput("path");
+    }
+}
+
 async function chmod(file) {
     await exec.exec(`chmod +x ${file}`);
 }
@@ -240,7 +249,8 @@ async function build_engine(clang, build_config, project, package) {
     const path = core.getInput("path");
     const ending = (os.platform() == "win32") ? ".exe" : "";
     const xwindow = (os.platform() == "linux") ? "xvfb-run --auto-servernum " : "";
-    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${xwindow}${path}bin/tmbuild/${build_config}/tmbuild${ending}` : `${path}bin/tmbuild${ending}`;
+    const sdk_dir = get_sdk_dir();
+    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${xwindow}${path}bin/tmbuild/${build_config}/tmbuild${ending}` : `${sdk_dir}/bin/tmbuild${ending}`;
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
     const usegennode = core.getInput("gennode") === 'true';
