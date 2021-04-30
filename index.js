@@ -196,6 +196,7 @@ async function download(mode, tmbuild_repository, libpath, cache) {
             const extractedFolder = await tc.extractZip(zip_path, `${libpath}/engine_bin`);
             core.info(`Extracted ${extractedFolder}`);
             core.exportVariable('TM_SDK_DIR', extractedFolder);
+            process.env['TM_SDK_DIR'] = extractedFolder;
         }
         return true;
     } catch (e) {
