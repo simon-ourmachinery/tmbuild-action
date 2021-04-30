@@ -123,9 +123,9 @@ async function download(mode, tmbuild_repository, libpath, cache) {
         const path = core.getInput("path");
         const dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : path;
 
-        if (cache) {
+        if (cache && (mode === 'engine' || mode === 'Engine')) {
             try {
-                const utils_dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : `${path}code/utils`;
+                const utils_dir = `${path}code/utils`;
                 const cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
                 let version = "";
                 if (mode === 'engine' || mode === 'Engine') {
@@ -150,6 +150,8 @@ async function download(mode, tmbuild_repository, libpath, cache) {
             } catch (e) {
                 core.info(`cannot get cache: ${e.message}`);
             }
+        } else {
+            core.info(`Do not use cached tmbuild or libs in plugin mode`);
         }
 
         if (mode === 'engine' || mode === 'Engine') {
