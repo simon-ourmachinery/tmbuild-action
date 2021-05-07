@@ -52,24 +52,6 @@ function seg_fault(str) {
     return false;
 }
 
-
-function contains_not_found(str) {
-    const regex = /tmbuild: No ([aA-zZ\-.]+) executable found./gm;
-    let m;
-
-    while ((m = regex.exec(str)) !== null) {
-        // This is necessary to avoid infinite loops with zero-width matches
-        if (m.index === regex.lastIndex) {
-            regex.lastIndex++;
-        }
-
-        if (m.length >= 2) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function parseForError(content) {
     try {
         let result = "";

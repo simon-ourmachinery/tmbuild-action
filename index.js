@@ -1,6 +1,5 @@
 // GitHub dependencies:
 const core = require('@actions/core');
-const github = require('@actions/github');
 const exec = require('@actions/exec');
 const tc = require('@actions/tool-cache');
 
@@ -90,9 +89,11 @@ async function premake(args) {
     options.listeners = {
         stdout: (data) => {
             myOutput += data.toString();
+            process.stdout.write(data.toString());
         },
         stderr: (data) => {
             myError += data.toString();
+            process.stdout.write(data.toString());
         }
     };
     options.silent = !core.isDebug();
@@ -105,14 +106,14 @@ async function premake(args) {
         }
         let res = utils.parseForError(myOutput);
         global.log_out_content += res.length != 0 ? res : "";
-        core.info(`$[${toolCall} ${args}]>>\n${myOutput}\n`);
+        utils.info(`$[${toolCall} ${args}]>>\n${myOutput}\n`);
         return true;
     } catch (e) {
         let res = utils.parseForError(myOutput);
         global.log_out_content += res.length != 0 ? res : "";
         res = utils.parseForError(myError)
         global.log_out_content += res.length != 0 ? res : "";
-        core.info(`$[${toolCall} ${args}]>>\n${myOutput}\n\n${myError}\n`);
+        utils.info(`$[${toolCall} ${args}]>>\n${myOutput}\n\n${myError}\n`);
         throw new Error(e.message);
         return false;
     }
@@ -138,20 +139,20 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                     const build_config = core.getInput("config");
                     await gh_cache.get(`${path}/bin/tmbuild/${build_config}`, "tmbuild", cache_version);
                 } catch (e) {
-                    core.info(`Need to re-build tmbuild`);
-                    core.info(`[debug]  ${e.message}`);
+                    utils.info(`Need to re-build tmbuild`);
+                    utils.info(`[debug]  ${e.message}`);
                 }
                 try {
                     const lib_path = (mode === 'engine' || mode === 'Engine') ? libpath : get_lib_path();
                     await gh_cache.get(lib_path, "libs", version);
                 } catch (e) {
-                    core.info("Need to download libs");
+                    utils.info("Need to download libs");
                 }
             } catch (e) {
-                core.info(`cannot get cache: ${e.message}`);
+                utils.info(`cannot get cache: ${e.message}`);
             }
         } else {
-            core.info(`Do not use cached tmbuild or libs in plugin mode`);
+            utils.info(`Do not use cached tmbuild or libs in plugin mode`);
         }
 
         if (mode === 'engine' || mode === 'Engine') {
@@ -164,13 +165,13 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                         const tool_name = value.lib;
                         const tool_url = `${tmbuild_repository}${tool_name}.zip`;
                         const dest_path = `${libpath}/${tool_name}.zip`;
-                        core.info(`Download ${tool_url} to ${dest_path}`);
+                        utils.info(`Download ${tool_url} to ${dest_path}`);
                         if (!fs.existsSync(dest_path)) {
                             const zip_path = await tc.downloadTool(`${tool_url}`);
                             let extractedFolder = await tc.extractZip(zip_path, libpath);
-                            core.info(`Extracted ${extractedFolder}`);
+                            utils.info(`Extracted ${extractedFolder}`);
                         } else {
-                            core.info(`Found ${dest_path} already!`);
+                            utils.info(`Found ${dest_path} already!`);
                         }
                     }
                 }
@@ -179,22 +180,22 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                         const tool_name = value.lib;
                         const tool_url = `${tmbuild_repository}${tool_name}.zip`;
                         const dest_path = `${libpath}/${tool_name}.zip`;
-                        core.info(`Download ${tool_url} to ${dest_path}`);
+                        utils.info(`Download ${tool_url} to ${dest_path}`);
                         if (!fs.existsSync(dest_path)) {
                             const zip_path = await tc.downloadTool(`${tool_url}`);
                             let extractedFolder = await tc.extractZip(zip_path, libpath);
-                            core.info(`Extracted ${extractedFolder}`);
+                            utils.info(`Extracted ${extractedFolder}`);
                         } else {
-                            core.info(`Found ${dest_path} already!`);
+                            utils.info(`Found ${dest_path} already!`);
                         }
                     }
                 }
             }
         } else {
-            core.info(`Download ${tmbuild_repository}`);
+            utils.info(`Download ${tmbuild_repository}`);
             const zip_path = await tc.downloadTool(`${tmbuild_repository}`);
             const extractedFolder = await tc.extractZip(zip_path, `${libpath}/engine_bin`);
-            core.info(`Extracted ${extractedFolder}`);
+            utils.info(`Extracted ${extractedFolder}`);
             core.exportVariable('TM_SDK_DIR', extractedFolder);
             process.env['TM_SDK_DIR'] = extractedFolder;
         }
@@ -206,7 +207,7 @@ async function download(mode, tmbuild_repository, libpath, cache) {
 }
 async function build_tmbuild(build_config) {
     core.debug(`build platform os: ${os.platform()}`);
-    core.info(`build config: ${build_config}`);
+    utils.info(`build config: ${build_config}`);
     const path = core.getInput("path");
     // setup logging:
     const options = {};
@@ -242,7 +243,7 @@ async function build_tmbuild(build_config) {
 
         return true;
     } catch (e) {
-        core.info(`${e.message}`);
+        utils.info(`${e.message}`);
         return false;
     }
 }
@@ -287,7 +288,7 @@ async function build_engine(clang, build_config, project, package) {
         }
         return true;
     } catch (e) {
-        core.info(`${e.message}`);
+        utils.info(`${e.message}`);
         return false;
     }
 }
@@ -361,18 +362,18 @@ async function build_engine(clang, build_config, project, package) {
                     // try get cache:
                     try {
                         await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, cache_version);
-                        core.info("Cached tmbuild!");
+                        utils.info("Cached tmbuild!");
                     } catch (e) {
-                        core.info(`Failed to cache tmbuild ${e.message}`);
+                        utils.info(`Failed to cache tmbuild ${e.message}`);
                     }
                     try {
                         await gh_cache.set(libpath, "libs", version);
-                        core.info("Cached libs!");
+                        utils.info("Cached libs!");
                     } catch (e) {
-                        core.info(`Failed to cache libs ${e.message}`);
+                        utils.info(`Failed to cache libs ${e.message}`);
                     }
                 } catch (e) {
-                    core.info(`cannot get cache: ${e.message}`);
+                    utils.info(`cannot get cache: ${e.message}`);
                 }
             }
             report(true, "finished");
