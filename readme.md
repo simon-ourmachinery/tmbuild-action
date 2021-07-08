@@ -1,8 +1,8 @@
-**# tmbuild-action**
+# tmbuild-action
 
-A GitHub action to build ***\*The Machinery\****'s one click build tool as well as the engine itself. This action will cache all depencies as well as the build tool itself if required. It supports to pack the engine or you plugin at the end.
+A GitHub action to build *The Machinery*'s one click build tool as well as the engine itself. This action will cache all dependencies as well as the build tool itself if required. It supports to pack the engine or you plugin at the end.
 
-**## Features**
+## Features
 
 - Will report errors and warnings via annotations
 - Can caches the dependencies and `tmbuild`
@@ -11,7 +11,7 @@ A GitHub action to build ***\*The Machinery\****'s one click build tool as well 
 - You can define a repository for the engines dependencies
 - You can package the engine/plugin
 
-**## Examples:**
+## Examples:
 
 **How to build:**
 
@@ -58,9 +58,9 @@ A GitHub action to build ***\*The Machinery\****'s one click build tool as well 
     package: package.json
 ```
 
-**## Variable overview:**
+## Variable overview:
 
-**### Inputs**
+### Inputs
 
 - Build Settings:
  - `mode: [Engine|Plugin] (default: Engine)` 
@@ -86,6 +86,6 @@ A GitHub action to build ***\*The Machinery\****'s one click build tool as well 
 
  
 
- **## Remarks**
+ ## Remarks
 
  The action will automatically detect changes in `tmbuild` or in lib dependencies in Engine mode.
