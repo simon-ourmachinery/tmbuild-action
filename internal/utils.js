@@ -161,7 +161,7 @@ async function hash(file) {
         await exec.exec(`git hash-object ${file}`, [], options);
         return myOutput;
     } catch (e) {
-        utils.info(`There was an error with git hash-object ${file}`);
+        core.warning(`[tmbuild-action] There was an error with git hash-object ${file}`);
         throw new Error(e.message);
     }
 }
