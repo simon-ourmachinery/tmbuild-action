@@ -125,7 +125,7 @@ async function download(mode, tmbuild_repository, libpath, cache) {
         if (cache && (mode === 'engine' || mode === 'Engine')) {
             try {
                 const utils_dir = `${path}code/utils`;
-                const cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
+                const hash_cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
                 let version = "";
                 if (mode === 'engine' || mode === 'Engine') {
                     version = await utils.hash(`${path}/libs.json`);
@@ -135,7 +135,7 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                 // try get cache:
                 try {
                     const build_config = core.getInput("config");
-                    await gh_cache.get(`${path}/bin/tmbuild/${build_config}`, "tmbuild", cache_version);
+                    await gh_cache.get(`${path}/bin/tmbuild/${build_config}`, "tmbuild", hash_cache_version);
                 } catch (e) {
                     utils.info(`Need to re-build tmbuild`);
                     utils.info(`[debug]  ${e.message}`);
@@ -350,22 +350,22 @@ async function build_engine(clang, build_config, project, package) {
                 // set cache:
                 try {
                     const utils_dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : `${path}code/utils`;
-                    const cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
-                    let version = "";
+                    const hash_cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
+                    let lib_hash_version = "";
                     if (mode === 'engine' || mode === 'Engine') {
-                        version = await utils.hash(`${path}/libs.json`);
+                        lib_hash_version = await utils.hash(`${path}/libs.json`);
                     } else {
-                        version = await utils.hash(`${utils_dir}/libs.json`);
+                        lib_hash_version = await utils.hash(`${utils_dir}/libs.json`);
                     }
                     // try get cache:
                     try {
-                        await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, cache_version);
+                        await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
                         utils.info("Cached tmbuild!");
                     } catch (e) {
                         utils.info(`Failed to cache tmbuild ${e.message}`);
                     }
                     try {
-                        await gh_cache.set(libpath, "libs", version);
+                        await gh_cache.set(libpath, "libs", lib_hash_version);
                         utils.info("Cached libs!");
                     } catch (e) {
                         utils.info(`Failed to cache libs ${e.message}`);
