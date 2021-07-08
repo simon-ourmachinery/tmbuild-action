@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const cache = require('@actions/cache');
 const os = require('os');
+const utils = require('./utils');
 
 async function set(toolPath, toolname, cacheVersion) {
     const key = `${toolname}-${os.platform()}-${core.getInput("config")}-${core.getInput("mode")}-${cacheVersion}`;
