@@ -1,6 +1,6 @@
 # tmbuild-action
 
-A GitHub action to build *The Machinery*'s one click build tool as well as the engine itself. This action will cache all dependencies as well as the build tool itself if required. It supports to pack the engine or you plugin at the end.
+A GitHub action to build [*The Machinery*'s](https://ourmachinery.com/post/one-button-source-code-builds/) click build tool as well as [the engine](https://ourmachinery.com/download.html) itself. This action will cache all dependencies as well as the build tool itself if required. It supports to pack the engine or your plugin at the end.
 
 ## Features
 
