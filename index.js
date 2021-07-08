@@ -122,9 +122,10 @@ async function download(mode, tmbuild_repository, libpath, cache) {
         const path = core.getInput("path");
         const dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : path;
 
+        // TODO: Make work for plugins as well...
         if (cache && (mode === 'engine' || mode === 'Engine')) {
             try {
-                const utils_dir = `${path}code/utils`;
+                const utils_dir = `${path}utils`;
                 const hash_cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
                 let version = "";
                 if (mode === 'engine' || mode === 'Engine') {
