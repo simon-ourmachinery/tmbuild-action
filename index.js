@@ -11,8 +11,6 @@ const fs = require('fs');
 
 
 global.log_out_content = "";
-const engine_lib_json_path = "./utils/libs.json";
-
 
 
 function parse_libs_file(lib_path) {
