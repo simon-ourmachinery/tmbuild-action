@@ -250,6 +250,7 @@ async function build_tmbuild(build_config) {
 async function build_engine(clang, build_config, project, package) {
     const mode = core.getInput("mode");
     const path = core.getInput("path");
+    const tests = core.getInput("tests") === 'true';
     const ending = (os.platform() == "win32") ? ".exe" : "";
     const xwindow = (os.platform() == "linux") ? "xvfb-run --auto-servernum " : "";
     const sdk_dir = get_sdk_dir();
@@ -261,6 +262,7 @@ async function build_engine(clang, build_config, project, package) {
     const gendoc = (usegendoc) ? "--gen-doc" : "";
     const gennode = (usegennode) ? "--gen-nodes" : "";
     const genhash = (usegenhash) ? "--gen-hash" : "";
+    const unit_tests = (!tests) ? "--no-unit-test" : "";
 
     // setup logging:
     const options = {};
@@ -279,11 +281,11 @@ async function build_engine(clang, build_config, project, package) {
     options.silent = !core.isDebug();
     try {
         if (package.length != 0) {
-            await exec.exec(`${tmbuild_path} -p ${package} ${useclang}  ${gendoc} ${genhash} ${gennode}`, [], options)
+            await exec.exec(`${tmbuild_path} -p ${package} ${useclang}  ${gendoc} ${genhash} ${gennode} ${unit_tests}`, [], options)
         } else if (project.length != 0) {
-            await exec.exec(`${tmbuild_path} -c ${build_config} --project ${project} ${useclang} ${gendoc} ${genhash} ${gennode}`, [], options)
+            await exec.exec(`${tmbuild_path} -c ${build_config} --project ${project} ${useclang} ${gendoc} ${genhash} ${gennode}  ${unit_tests}`, [], options)
         } else {
-            await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}`, [], options)
+            await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}  ${unit_tests}`, [], options)
         }
         return true;
     } catch (e) {
