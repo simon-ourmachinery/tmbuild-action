@@ -41,7 +41,10 @@ function get_sdk_dir() {
 }
 
 async function chmod(file) {
-    await exec.exec(`chmod +x ${file}`);
+    let osname = os.platform();
+    if (osname != "win32") {
+        await exec.exec(`chmod +x ${file}`);
+    }
 }
 
 function get_lib(libjson, lib) {
