@@ -101,7 +101,7 @@ function parseForError(content) {
                 }
             }
         }
-        const regex_err = /(.*)error:(.*)|(.*)Error:(.*)|(.*)error :(.*)|(.*)Error :(.*)/gm;
+        const regex_err = /error [aA-zZ][0-9]+:(.*)|(.*)error:(.*)|(.*)Error:(.*)|(.*)error :(.*)|(.*)Error :(.*)/gm;
         while ((m = regex_err.exec(content)) !== null) {
             // This is necessary to avoid infinite loops with zero-width matches
             if (m.index === regex_err.lastIndex) {
@@ -116,7 +116,7 @@ function parseForError(content) {
             }
         }
 
-        const regex_war = /(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
+        const regex_war = /warning [aA-zZ][0-9]+:(.*)|(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
         while ((m = regex_war.exec(content)) !== null) {
             // This is necessary to avoid infinite loops with zero-width matches
             if (m.index === regex_war.lastIndex) {
