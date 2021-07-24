@@ -69,7 +69,9 @@ function report(status, stage) {
     }
     const regex = /(^")|("$)/gm;
     const subst = ``;
-    const result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
+    result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
+    if (result.length > 1000)
+        result = string.substring(0, 1000);
     core.setOutput(`result`, result);
 }
 
