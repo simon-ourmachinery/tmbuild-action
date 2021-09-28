@@ -267,7 +267,6 @@ async function build_tmbuild(build_config) {
         if (fs.existsSync(`${path}bin/${build_config}/tmbuild${ending}`)) {
             await utils.cp(`${path}/bin/${build_config}/tmbuild${ending}`, `${path}bin/tmbuild/${build_config}`);
         }
-
         return true;
     } catch (e) {
         utils.info(`${e.message}`);
@@ -303,10 +302,13 @@ async function run_unit_tests(tests) {
         await exec.exec(`ls ./bin`, [], options)
         utils.info(`end ls ./bin`);
         if (fs.existsSync(exec_path)) {
-            tests.forEach(async function(test) {
+            for(i = 0; i < tests.length;i++){
                 utils.info(`run test: ${test}`);
-                await exec.exec(`${xwindow} ${exec_path} -t ${test}`, [], options)
-            });
+                const code = await exec.exec(`${xwindow} ${exec_path} -t ${tests[i]}`, [], options)
+                if(code){
+                    return false;
+                }
+            }
         }else{
             utils.info(`Cannot find: ${exec_path}`);
         }
