@@ -299,7 +299,7 @@ async function run_unit_tests(tests) {
         const sdk_dir = get_sdk_dir();
         const exec_path = (mode === 'engine' || mode === 'Engine')?`${path}bin/${build_config}/unit-test${ending}`: `${sdk_dir}/bin/unit-test${ending}`;
         if (fs.existsSync(exec_path)) {
-            tests.forEach(test =>{
+            tests.forEach(async function(test) {
                 await exec.exec(`${xwindow} ${exec_path} -t ${test}`, [], options)
             });
         }
