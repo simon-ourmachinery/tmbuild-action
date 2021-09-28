@@ -303,8 +303,9 @@ async function run_unit_tests(tests) {
         utils.info(`end ls ./bin`);
         if (fs.existsSync(exec_path)) {
             for(i = 0; i < tests.length;i++){
+                const test = tests[i];
                 utils.info(`run test: ${test}`);
-                const code = await exec.exec(`${xwindow} ${exec_path} -t ${tests[i]}`, [], options)
+                const code = await exec.exec(`${xwindow} ${exec_path} -t ${test}`, [], options)
                 if(code){
                     return false;
                 }
