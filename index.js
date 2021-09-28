@@ -378,7 +378,7 @@ async function build_engine(clang, build_config, project, package) {
     const path = core.getInput("path");
     core.debug(`folder: ${path}`);
     const unit_tests = JSON.parse(core.getInput("unit-tests"));
-    const run_unit_tests = Array.isArray(unit_tests);
+    const shall_run_unit_tests = Array.isArray(unit_tests);
     try {
         if (mode === 'engine' || mode === 'Engine') {
             if (!await core.group("download dependencies", async () => { return download(mode, tmbuild_repository, libpath, cache); })) {
@@ -405,7 +405,7 @@ async function build_engine(clang, build_config, project, package) {
                 return;
             }
 
-            if(!run_unit_tests){
+            if(!shall_run_unit_tests){
                 if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
                     await report(false, "build tmbuild");
                     return;
