@@ -299,6 +299,9 @@ async function run_unit_tests(tests) {
         const ending = (os.platform() == "win32") ? ".exe" : "";
         const sdk_dir = get_sdk_dir();
         const exec_path = (mode === 'engine' || mode === 'Engine')?`${path}bin/${build_config}/unit-test${ending}`: `${sdk_dir}/bin/unit-test${ending}`;
+        utils.info(`ls ./bin`);
+        await exec.exec(`ls ./bin`, [], options)
+        utils.info(`end ls ./bin`);
         if (fs.existsSync(exec_path)) {
             tests.forEach(async function(test) {
                 utils.info(`run test: ${test}`);
