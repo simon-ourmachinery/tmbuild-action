@@ -384,7 +384,8 @@ async function build_engine(clang, build_config, project, package) {
     core.debug(`lib path: ${libpath}`);
     const path = core.getInput("path");
     core.debug(`folder: ${path}`);
-    const unit_tests = JSON.parse(core.getInput("unit-tests"));
+    const unit_tests_json_str = core.getInput("unit-tests");
+    const unit_tests = unit_tests_json_str.length? JSON.parse(unit_tests_json_str):NULL;
     const shall_run_unit_tests = Array.isArray(unit_tests);
     try {
         if (mode === 'engine' || mode === 'Engine') {
