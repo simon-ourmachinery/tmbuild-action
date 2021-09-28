@@ -43,6 +43,10 @@ inputs:
 outputs:
   result: # id of output
     description: 'the result of the build step'
+  errors:
+    description: 'returns only the errors'
+  warnings:
+    description: 'returns only the warnings'
 runs:
   using: 'node12'
   main: 'index.js'

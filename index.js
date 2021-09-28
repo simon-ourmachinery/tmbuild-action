@@ -10,7 +10,13 @@ const os = require('os');
 const fs = require('fs');
 
 
+// all log content
 global.log_out_content = "";
+
+// warnings
+global.log_out_warnings = "";
+// errors
+global.log_out_errors = "";
 
 
 function parse_libs_file(lib_path) {
@@ -67,12 +73,30 @@ function report(status, stage) {
     if (!status) {
         core.setFailed(`Build Failed in stage ${stage}`);
     }
-    const regex = /(^")|("$)/gm;
-    const subst = ``;
-    result = JSON.stringify(global.log_out_content).replace(regex, subst).replace(/\\n/g, "\\n");
-    if (result.length > 1000)
-        result = result.substring(0, 1000);
-    core.setOutput(`result`, result);
+    const set_result = (data, name) => {
+        const regex = /(^")|("$)/gm;
+        const subst = ``;
+        result = JSON.stringify(data).replace(regex, subst).replace(/\\n/g, "\\n");
+        if (result.length > 1000)
+            result = result.substring(0, 1000);
+        core.setOutput(name, result);
+    }
+    set_result(global.log_out_content, "result");
+    set_result(global.log_out_errors, "errors");
+    set_result(global.log_out_warnings, "warnings");
+}
+
+function parseContent(content) {
+    {
+        let errs = utils.parseForError(content);
+        global.log_out_content += errs.length != 0 ? errs : "";
+        global.log_out_errors += errs.length != 0 ? errs : "";
+    }
+    {
+        let warnings = utils.parseForWarnings(content);
+        global.log_out_warnings += warnings.length != 0 ? warnings : "";
+        global.log_out_content += warnings.length != 0 ? warnings : "";
+    }
 }
 
 async function premake(args) {
@@ -107,15 +131,12 @@ async function premake(args) {
         } else {
             await exec.exec(`${toolCall} ${args}`, [], options);
         }
-        let res = utils.parseForError(myOutput);
-        global.log_out_content += res.length != 0 ? res : "";
+        parseContent(myOutput);
         utils.info(`$[${toolCall} ${args}]>>\n${myOutput}\n`);
         return true;
     } catch (e) {
-        let res = utils.parseForError(myOutput);
-        global.log_out_content += res.length != 0 ? res : "";
-        res = utils.parseForError(myError)
-        global.log_out_content += res.length != 0 ? res : "";
+        parseContent(myOutput);
+        parseContent(myError);
         utils.info(`$[${toolCall} ${args}]>>\n${myOutput}\n\n${myError}\n`);
         throw new Error(e.message);
         return false;
@@ -221,14 +242,12 @@ async function build_tmbuild(build_config) {
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            let res = utils.parseForError(data.toString());
+            parseContent(data.toString());
             process.stdout.write(data.toString());
-            global.log_out_content += res.length != 0 ? res : "";
         },
         stderr: (data) => {
-            let res = utils.parseForError(data.toString());
+            parseContent(data.toString());
             process.stdout.write(data.toString());
-            global.log_out_content += res.length != 0 ? res : "";
         }
     };
     options.silent = !core.isDebug();
@@ -277,14 +296,12 @@ async function build_engine(clang, build_config, project, package) {
     const options = {};
     options.listeners = {
         stdout: (data) => {
-            let res = utils.parseForError(data.toString());
+            parseContent(data.toString());
             process.stdout.write(data.toString());
-            global.log_out_content += res.length != 0 ? res : "";
         },
         stderr: (data) => {
-            let res = utils.parseForError(data.toString());
+            parseContent(data.toString());
             process.stdout.write(data.toString());
-            global.log_out_content += res.length != 0 ? res : "";
         }
     };
     options.silent = !core.isDebug();

@@ -115,7 +115,17 @@ function parseForError(content) {
                 result += `error:${m[0].trim()}\n`
             }
         }
+        return result;
+    } catch {
+        return "[tmbuild-action] error parsing error!\n";
+    }
+}
 
+exports.parseForError = parseForError;
+
+function parseForWarnings(content) {
+    try {
+        let result = "";
         const regex_war = /warning [aA-zZ][0-9]+:(.*)|(.*)warning:(.*)|(.*)Warning:(.*)|(.*)warning :(.*)|(.*)Warning :(.*)/gm;
         while ((m = regex_war.exec(content)) !== null) {
             // This is necessary to avoid infinite loops with zero-width matches
@@ -130,17 +140,14 @@ function parseForError(content) {
                 result += `warning:${m[0].trim()}\n`;
             }
         }
-        if (has_seg_fault) {
-            core.error("Segmentation fault (core dumped)");
-            result += `error: found crash: \`Segmentation fault (core dumped)\`\n${result}\n`;
-        }
         return result;
     } catch {
-        return "[tmbuild-action] error parsing error!\n";
+        return "[tmbuild-action] error parsing warnings!\n";
     }
 }
 
-exports.parseForError = parseForError;
+
+exports.parseForWarnings = parseForWarnings;
 
 
 async function hash(file) {
