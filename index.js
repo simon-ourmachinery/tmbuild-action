@@ -280,6 +280,7 @@ async function run_unit_tests(tests) {
     utils.info(`tests config: ${JSON.stringify(tests)}`);
     const mode = core.getInput("mode");
     const path = core.getInput("path");
+    const build_config = core.getInput("config");
     // setup logging:
     const options = {};
     options.listeners = {
