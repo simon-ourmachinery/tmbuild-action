@@ -275,6 +275,41 @@ async function build_tmbuild(build_config) {
     }
 }
 
+async function run_unit_tests(tests) {
+    core.debug(`tests platform os: ${os.platform()}`);
+    utils.info(`tests config: ${JSON.stringify(tests)}`);
+    const mode = core.getInput("mode");
+    const path = core.getInput("path");
+    // setup logging:
+    const options = {};
+    options.listeners = {
+        stdout: (data) => {
+            parseContent(data.toString());
+            process.stdout.write(data.toString());
+        },
+        stderr: (data) => {
+            parseContent(data.toString());
+            process.stdout.write(data.toString());
+        }
+    };
+    options.silent = !core.isDebug();
+    try {
+        const xwindow = (os.platform() == "linux") ? "xvfb-run --auto-servernum " : "";
+        const ending = (os.platform() == "win32") ? ".exe" : "";
+        const sdk_dir = get_sdk_dir();
+        const exec_path = (mode === 'engine' || mode === 'Engine')?`${path}bin/${build_config}/unit-test${ending}`: `${sdk_dir}/bin/unit-test${ending}`;
+        if (fs.existsSync(exec_path)) {
+            tests.forEach(test =>{
+                await exec.exec(`${xwindow} ${exec_path} -t ${test}`, [], options)
+            });
+        }
+        return true;
+    } catch (e) {
+        utils.info(`${e.message}`);
+        return false;
+    }
+}
+
 async function build_engine(clang, build_config, project, package) {
     const mode = core.getInput("mode");
     const path = core.getInput("path");
@@ -342,6 +377,8 @@ async function build_engine(clang, build_config, project, package) {
     core.debug(`lib path: ${libpath}`);
     const path = core.getInput("path");
     core.debug(`folder: ${path}`);
+    const unit_tests = JSON.parse(core.getInput("unit-tests"));
+    const run_unit_tests = Array.isArray(unit_tests.length());
     try {
         if (mode === 'engine' || mode === 'Engine') {
             if (!await core.group("download dependencies", async () => { return download(mode, tmbuild_repository, libpath, cache); })) {
@@ -367,41 +404,49 @@ async function build_engine(clang, build_config, project, package) {
                 await report(false, "run premake");
                 return;
             }
-            if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
-                await report(false, "build tmbuild");
-                return;
-            }
-            if (!await core.group("build engine", async () => { return build_engine(clang, build_config, project, package); })) {
-                await report(false, "build the engine");
-                return;
-            }
-            if (cache) {
-                // set cache:
-                try {
-                    const utils_dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : `${path}code/utils`;
-                    const hash_cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
-                    let lib_hash_version = "";
-                    if (mode === 'engine' || mode === 'Engine') {
-                        lib_hash_version = await utils.hash(`${path}/libs.json`);
-                    } else {
-                        lib_hash_version = await utils.hash(`${utils_dir}/libs.json`);
-                    }
-                    // try get cache:
-                    try {
-                        await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
-                        utils.info("Cached tmbuild!");
-                    } catch (e) {
-                        utils.info(`Failed to cache tmbuild ${e.message}`);
-                    }
-                    try {
-                        await gh_cache.set(libpath, "libs", lib_hash_version);
-                        utils.info("Cached libs!");
-                    } catch (e) {
-                        utils.info(`Failed to cache libs ${e.message}`);
-                    }
-                } catch (e) {
-                    utils.info(`cannot get cache: ${e.message}`);
+
+            if(!run_unit_tests){
+                if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
+                    await report(false, "build tmbuild");
+                    return;
                 }
+                if (!await core.group("build engine", async () => { return build_engine(clang, build_config, project, package); })) {
+                    await report(false, "build the engine");
+                    return;
+                }
+                if (cache) {
+                    // set cache:
+                    try {
+                        const utils_dir = (mode === 'engine' || mode === 'Engine') ? `${path}utils` : `${path}code/utils`;
+                        const hash_cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
+                        let lib_hash_version = "";
+                        if (mode === 'engine' || mode === 'Engine') {
+                            lib_hash_version = await utils.hash(`${path}/libs.json`);
+                        } else {
+                            lib_hash_version = await utils.hash(`${utils_dir}/libs.json`);
+                        }
+                        // try get cache:
+                        try {
+                            await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
+                            utils.info("Cached tmbuild!");
+                        } catch (e) {
+                            utils.info(`Failed to cache tmbuild ${e.message}`);
+                        }
+                        try {
+                            await gh_cache.set(libpath, "libs", lib_hash_version);
+                            utils.info("Cached libs!");
+                        } catch (e) {
+                            utils.info(`Failed to cache libs ${e.message}`);
+                        }
+                    } catch (e) {
+                        utils.info(`cannot get cache: ${e.message}`);
+                    }
+                }
+            }else{
+                if (!await core.group("run unit-tests", async () => { return run_unit_tests(unit_tests); })) {
+                    await report(false, "unit-tests");
+                    return;
+                }                
             }
             report(true, "finished");
         } else if (mode === 'plugin' || mode === 'Plugin') {

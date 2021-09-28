@@ -40,6 +40,8 @@ inputs:
     default: true
   path:
     default: "./"
+  unit-tests:
+    description: 'Runs a specific unit tests'
 outputs:
   result: # id of output
     description: 'the result of the build step'
