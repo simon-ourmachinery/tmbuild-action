@@ -56,7 +56,7 @@ function parseForError(content) {
     try {
         let result = "";
         const has_seg_fault = seg_fault(content);
-        if (content.includes("tmbuild:")) {
+        if (content.includes("tmbuild:") && !content.includes("tmbuild: [delete-dirs] Folder")) {
             if (!content.includes("tmbuild: No unit-test executable found.")) {
                 // tmbuild error:
                 const regex_tm = /^tmbuild:(.*)$/gm;
