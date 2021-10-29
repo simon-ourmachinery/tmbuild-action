@@ -343,7 +343,7 @@ async function build_engine(clang, build_config, project, package) {
     if ((mode === 'engine' || mode === 'Engine')) {
         tmbuild_path = `${xwindow} ${cwd}/bin/tmbuild/${build_config}/tmbuild${ending}`;
     } else {
-        tmbuild_path = fs.existsSync(`${sdk_dir}/bin/tmbuild${ending}`) ? `${sdk_dir}/bin/tmbuild${ending}` : `${sdk_dir}/bin/${build_config}/tmbuild${ending}`;
+        tmbuild_path = fs.existsSync(`${sdk_dir}/bin/tmbuild${ending}`) ? `${xwindow} ${sdk_dir}/bin/tmbuild${ending}` : `${xwindow} ${sdk_dir}/bin/${build_config}/tmbuild${ending}`;
     }
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
