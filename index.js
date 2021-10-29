@@ -10,6 +10,7 @@ const os = require('os');
 const fs = require('fs');
 
 
+
 // all log content
 global.log_out_content = "";
 
@@ -335,7 +336,8 @@ async function build_engine(clang, build_config, project, package) {
     const ending = (os.platform() == "win32") ? ".exe" : "";
     const xwindow = (os.platform() == "linux") ? "xvfb-run --auto-servernum " : "";
     const sdk_dir = get_sdk_dir();
-    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${xwindow} ./bin/tmbuild/${build_config}/tmbuild${ending}` : `${sdk_dir}/bin/tmbuild${ending}`;
+    const cwd = process.cwd();
+    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${xwindow} ${cwd}/bin/tmbuild/${build_config}/tmbuild${ending}` : `${sdk_dir}/bin/tmbuild${ending}`;
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
     const usegennode = core.getInput("gennode") === 'true';
@@ -450,7 +452,8 @@ async function build_engine(clang, build_config, project, package) {
                         }
                         // try get cache:
                         try {
-                            await gh_cache.set(`./bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
+                            const cwd = process.cwd();
+                            await gh_cache.set(`${cwd}/bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
                             utils.info("Cached tmbuild!");
                         } catch (e) {
                             utils.info(`Failed to cache tmbuild ${e.message}`);
