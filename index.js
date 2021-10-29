@@ -225,13 +225,15 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                     }
                 }
             }
-        } else {
+        } else if (tmbuild_repository.includes(".zip")) {
             utils.info(`Download ${tmbuild_repository}`);
             const zip_path = await tc.downloadTool(`${tmbuild_repository}`);
             const extractedFolder = await tc.extractZip(zip_path, `${libpath}/engine_bin`);
             utils.info(`Extracted ${extractedFolder}`);
             core.exportVariable('TM_SDK_DIR', extractedFolder);
             process.env['TM_SDK_DIR'] = extractedFolder;
+        } else {
+            core.info(`Nothing todo...`);
         }
         return true;
     } catch (e) {
@@ -476,9 +478,13 @@ async function build_engine(clang, build_config, project, package) {
             }
             report(true, "finished");
         } else if (mode === 'plugin' || mode === 'Plugin') {
-            if (!await core.group("download engine", async () => { return download(mode, binary_repository, process.env.GITHUB_WORKSPACE, cache); })) {
-                await report(false, "download engine");
-                return;
+            if (binary_repository != "Null") {
+                if (!await core.group("download engine", async () => { return download(mode, binary_repository, process.env.GITHUB_WORKSPACE, cache); })) {
+                    await report(false, "download engine");
+                    return;
+                }
+            } else {
+                utils.info(`Do not download the engine... no binary repository is given`);
             }
             if (!await core.group("build plugin", async () => { return build_engine(clang, build_config, project, package); })) {
                 await report(false, "build the engine");
