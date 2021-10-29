@@ -123,6 +123,10 @@ async function premake(args) {
             process.stdout.write(data.toString());
         }
     };
+
+    if (path != "./")
+        options.cwd = path;
+
     options.silent = !core.isDebug();
     try {
         await chmod(toolCall);
@@ -250,6 +254,9 @@ async function build_tmbuild(build_config) {
             process.stdout.write(data.toString());
         }
     };
+    if (path != "./")
+        options.cwd = path;
+
     options.silent = !core.isDebug();
     // building tmbuild:
     try {
@@ -292,22 +299,26 @@ async function run_unit_tests(tests) {
             process.stdout.write(data.toString());
         }
     };
+
+    if (path != "./")
+        options.cwd = path;
+
     options.silent = !core.isDebug();
     try {
         const xwindow = (os.platform() == "linux") ? "xvfb-run --auto-servernum " : "";
         const ending = (os.platform() == "win32") ? ".exe" : "";
         const sdk_dir = get_sdk_dir();
-        const exec_path = (mode === 'engine' || mode === 'Engine')?`${path}bin/${build_config}/unit-test${ending}`: `${sdk_dir}/bin/unit-test${ending}`;
+        const exec_path = (mode === 'engine' || mode === 'Engine') ? `${path}bin/${build_config}/unit-test${ending}` : `${sdk_dir}/bin/unit-test${ending}`;
         if (fs.existsSync(exec_path)) {
-            for(i = 0; i < tests.length;i++){
+            for (i = 0; i < tests.length; i++) {
                 const test = tests[i];
                 utils.info(`run test: ${test}`);
                 const code = await exec.exec(`${xwindow} ${exec_path} -t ${test}`, [], options)
-                if(code){
+                if (code) {
                     return false;
                 }
             }
-        }else{
+        } else {
             utils.info(`Cannot find: ${exec_path}`);
         }
         return true;
@@ -346,6 +357,10 @@ async function build_engine(clang, build_config, project, package) {
             process.stdout.write(data.toString());
         }
     };
+
+    if (path != "./")
+        options.cwd = path;
+
     options.silent = !core.isDebug();
     try {
         if (package.length != 0) {
@@ -385,7 +400,7 @@ async function build_engine(clang, build_config, project, package) {
     const path = core.getInput("path");
     core.debug(`folder: ${path}`);
     const unit_tests_json_str = core.getInput("unit-tests");
-    const unit_tests = unit_tests_json_str.length? JSON.parse(unit_tests_json_str):null;
+    const unit_tests = unit_tests_json_str.length ? JSON.parse(unit_tests_json_str) : null;
     const shall_run_unit_tests = Array.isArray(unit_tests);
     try {
         if (mode === 'engine' || mode === 'Engine') {
@@ -413,7 +428,7 @@ async function build_engine(clang, build_config, project, package) {
                 return;
             }
 
-            if(!shall_run_unit_tests){
+            if (!shall_run_unit_tests) {
                 if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
                     await report(false, "build tmbuild");
                     return;
@@ -450,11 +465,11 @@ async function build_engine(clang, build_config, project, package) {
                         utils.info(`cannot get cache: ${e.message}`);
                     }
                 }
-            }else{
+            } else {
                 if (!await core.group("run unit-tests", async () => { return run_unit_tests(unit_tests); })) {
                     await report(false, "unit-tests");
                     return;
-                }                
+                }
             }
             report(true, "finished");
         } else if (mode === 'plugin' || mode === 'Plugin') {
