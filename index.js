@@ -339,11 +339,11 @@ async function build_engine(clang, build_config, project, package) {
     const xwindow = (os.platform() == "linux") ? "xvfb-run --auto-servernum " : "";
     const sdk_dir = get_sdk_dir();
     const cwd = process.cwd();
-    const tmbuild_path = "";
+    let tmbuild_path = "";
     if ((mode === 'engine' || mode === 'Engine')) {
-        let tmbuild_path = `${xwindow} ${cwd}/bin/tmbuild/${build_config}/tmbuild${ending}`;
+        tmbuild_path = `${xwindow} ${cwd}/bin/tmbuild/${build_config}/tmbuild${ending}`;
     } else {
-        let tmbuild_path = fs.existsSync(`${sdk_dir}/bin/tmbuild${ending}`) ? `${sdk_dir}/bin/tmbuild${ending}` : `${sdk_dir}/bin/${build_config}/tmbuild/${ending}`;
+        tmbuild_path = fs.existsSync(`${sdk_dir}/bin/tmbuild${ending}`) ? `${sdk_dir}/bin/tmbuild${ending}` : `${sdk_dir}/bin/${build_config}/tmbuild/${ending}`;
     }
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
