@@ -272,7 +272,7 @@ async function build_tmbuild(build_config) {
         // move tmbuild:
         const ending = (os.platform() == "win32") ? ".exe" : "";
         if (fs.existsSync(`${path}bin/${build_config}/tmbuild${ending}`)) {
-            await utils.cp(`${path}/bin/${build_config}/tmbuild${ending}`, `${path}bin/tmbuild/${build_config}`);
+            await utils.cp(`${path}/bin/${build_config}/tmbuild${ending}`, `./bin/tmbuild/${build_config}`);
         }
         return true;
     } catch (e) {
@@ -335,7 +335,7 @@ async function build_engine(clang, build_config, project, package) {
     const ending = (os.platform() == "win32") ? ".exe" : "";
     const xwindow = (os.platform() == "linux") ? "xvfb-run --auto-servernum " : "";
     const sdk_dir = get_sdk_dir();
-    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${xwindow}${path}bin/tmbuild/${build_config}/tmbuild${ending}` : `${sdk_dir}/bin/tmbuild${ending}`;
+    const tmbuild_path = (mode === 'engine' || mode === 'Engine') ? `${xwindow} ./bin/tmbuild/${build_config}/tmbuild${ending}` : `${sdk_dir}/bin/tmbuild${ending}`;
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
     const usegennode = core.getInput("gennode") === 'true';
@@ -450,7 +450,7 @@ async function build_engine(clang, build_config, project, package) {
                         }
                         // try get cache:
                         try {
-                            await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
+                            await gh_cache.set(`./bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
                             utils.info("Cached tmbuild!");
                         } catch (e) {
                             utils.info(`Failed to cache tmbuild ${e.message}`);
