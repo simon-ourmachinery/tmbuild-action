@@ -373,11 +373,11 @@ async function build_engine(clang, build_config, project, package) {
     options.silent = !core.isDebug();
     try {
         if (package.length != 0) {
-            await exec.exec(`${tmbuild_path} --clean -p ${package} ${useclang}  ${gendoc} ${genhash} ${gennode} ${unit_tests}`, [], options)
+            await exec.exec(`${tmbuild_path} -p ${package} ${useclang}  ${gendoc} ${genhash} ${gennode} ${unit_tests}`, [], options)
         } else if (project.length != 0) {
-            await exec.exec(`${tmbuild_path} --clean -c ${build_config} --project ${project} ${useclang} ${gendoc} ${genhash} ${gennode}  ${unit_tests}`, [], options)
+            await exec.exec(`${tmbuild_path} -c ${build_config} --project ${project} ${useclang} ${gendoc} ${genhash} ${gennode}  ${unit_tests}`, [], options)
         } else {
-            await exec.exec(`${tmbuild_path} --clean -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}  ${unit_tests}`, [], options)
+            await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}  ${unit_tests}`, [], options)
         }
         return true;
     } catch (e) {
