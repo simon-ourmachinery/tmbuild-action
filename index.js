@@ -380,7 +380,7 @@ async function find_tmbuild() {
         `${sdk_dir}/bin/Debug/tmbuild${ending}`
     ];
     for (let i = 0; i < paths.length; i++) {
-        if (fs.existsSync(paths[i])) {
+        if (fs.existsSync(paths[i]) && fs.lstatSync(paths[i]).isFile()) {
             await chmod(paths[i]);
             return `${xwindow} ${paths[i]}`;
         } else {
