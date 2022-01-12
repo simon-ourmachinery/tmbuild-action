@@ -49,6 +49,10 @@ outputs:
     description: 'returns only the errors'
   warnings:
     description: 'returns only the warnings'
+  tmbuild-cache-key:
+    description: 'returns the tmbuild cache key'
+  tmbuild-cache-path:
+    description: 'returns the tmbuild cache path'
 runs:
   using: 'node12'
   main: 'index.js'
