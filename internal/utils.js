@@ -29,7 +29,7 @@ async function cp(src, dest) {
         await exec.exec(`powershell.exe Copy-Item -Path "${src}" -Destination "${dest}" -Recurse -Force`)
     } else {
         await exec.exec(`mkdir -p ${dest}`)
-        await exec.exec(`cp -avp ${src} ${dest}`)
+        await exec.exec(`cp -avp  ${src} ${dest}`)
     }
     core.endGroup();
 }
@@ -166,7 +166,7 @@ async function hash(file) {
     try {
         if (!fs.existsSync(file)) throw new Error(`Error: Could not find ${file}`);
         await exec.exec(`git hash-object ${file}`, [], options);
-        return myOutput.replace("\n", "");
+        return myOutput;
     } catch (e) {
         core.warning(`[tmbuild-action] There was an error with git hash-object ${file}`);
         throw new Error(e.message);

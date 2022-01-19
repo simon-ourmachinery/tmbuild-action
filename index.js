@@ -8,7 +8,6 @@ const gh_cache = require("./internal/cache");
 
 const os = require('os');
 const fs = require('fs');
-const path = require('path');
 
 
 
@@ -51,8 +50,7 @@ function get_sdk_dir() {
 async function chmod(file) {
     let osname = os.platform();
     if (osname != "win32") {
-        await exec.exec(`ls -l ${file}`);
-        await exec.exec(`chmod 755 ${file}`);
+        await exec.exec(`chmod +x ${file}`);
     }
 }
 
@@ -150,32 +148,6 @@ async function premake(args) {
     }
 }
 
-async function get_tmbuild() {
-    let path = core.getInput("path");
-    const utils_dir = `${path}utils`;
-    const build_config = core.getInput("config");
-    const ending = (os.platform() == "win32") ? ".exe" : "";
-    if (!fs.existsSync(`${path}bin/tmbuild/${build_config}/tmbuild${ending}`)) {
-        const hash_cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
-        try {
-            if (path == "./")
-                path = process.cwd();
-            let ret = await gh_cache.get(`${path}/bin/tmbuild/${build_config}`, "tmbuild", hash_cache_version);
-            utils.info(`Path: ${ret}`);
-            core.setOutput("tmbuild-cache-key", gh_cache.get_key("tmbuild", hash_cache_version));
-            core.setOutput("tmbuild-cache-path", `${path}/bin/tmbuild/${build_config}`);
-            return ret != undefined;
-        } catch (e) {
-            utils.info(`Need to re-build tmbuild`);
-            utils.info(`[debug]  ${e.message}`);
-            return false;
-        }
-    } else {
-        utils.info(`file: ${path}bin/tmbuild/${build_config}/tmbuild${ending} exists!`);
-        return true;
-    }
-}
-
 async function download(mode, tmbuild_repository, libpath, cache) {
     try {
         const path = core.getInput("path");
@@ -185,16 +157,20 @@ async function download(mode, tmbuild_repository, libpath, cache) {
         if (cache && (mode === 'engine' || mode === 'Engine')) {
             try {
                 const utils_dir = `${path}utils`;
+                const hash_cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
                 let version = "";
                 if (mode === 'engine' || mode === 'Engine') {
                     version = await utils.hash(`${path}/libs.json`);
                 } else {
                     version = await utils.hash(`${utils_dir}/libs.json`);
                 }
-                if (await get_tmbuild()) {
-                    utils.info("Downloaded tmbuild");
-                } else {
-                    utils.info("Could not download tmbuild..");
+                // try get cache:
+                try {
+                    const build_config = core.getInput("config");
+                    await gh_cache.get(`${path}/bin/tmbuild/${build_config}`, "tmbuild", hash_cache_version);
+                } catch (e) {
+                    utils.info(`Need to re-build tmbuild`);
+                    utils.info(`[debug]  ${e.message}`);
                 }
                 try {
                     const lib_path = (mode === 'engine' || mode === 'Engine') ? libpath : get_lib_path();
@@ -289,31 +265,21 @@ async function build_tmbuild(build_config) {
     try {
         if (os.platform() == "linux") {
             await exec.exec(`make tmbuild config=${build_config.toLowerCase()}_linux`, [], options)
-        } else {
+        } else
             if (os.platform() == "win32") {
                 await exec.exec(`msbuild.exe "build/tmbuild/tmbuild.vcxproj" /p:Configuration="${build_config} Win64" /p:Platform=x64`, [], options)
-            } else {
+            } else
                 if (os.platform() == "darwin") {
                     await exec.exec(`xcodebuild -project build/tmbuild/tmbuild.xcodeproj -configuration ${build_config}`, [], options)
                 }
-            }
-        }
-        utils.info(`move tmbuild`);
         // move tmbuild:
         const ending = (os.platform() == "win32") ? ".exe" : "";
-        let local_path = path;
-        if (path == "./") {
-            local_path = process.cwd();
+        if (fs.existsSync(`${path}bin/${build_config}/tmbuild${ending}`)) {
+            await utils.cp(`${path}/bin/${build_config}/tmbuild${ending}`, `./bin/tmbuild/${build_config}`);
         }
-        if (fs.existsSync(`${local_path}/bin/${build_config}/tmbuild${ending}`)) {
-            await utils.cp(`${local_path}/bin/${build_config}/tmbuild${ending}`, `${local_path}/bin/tmbuild/${build_config}`);
-            return true;
-        } else {
-            utils.info(`Path does not exist! ${local_path}/bin/${build_config}/tmbuild${ending}`);
-            return false;
-        }
+        return true;
     } catch (e) {
-        utils.warnings(`${e.message}`);
+        utils.info(`${e.message}`);
         return false;
     }
 }
@@ -400,17 +366,9 @@ async function build_engine(clang, build_config, project, package) {
     const cwd = process.cwd();
     let tmbuild_path = "";
     if ((mode === 'engine' || mode === 'Engine')) {
-        if (path == "./") {
-            tmbuild_path = `${xwindow} ${cwd}/bin/tmbuild/${build_config}/tmbuild${ending}`;
-        } else {
-            tmbuild_path = `${xwindow} ${path}/bin/tmbuild/${build_config}/tmbuild${ending}`;
-        }
+        tmbuild_path = `${xwindow} ${cwd}/bin/tmbuild/${build_config}/tmbuild${ending}`;
     } else {
-        tmbuild_path = await find_tmbuild();
-        if (tmbuild_path === undefined) {
-            utils.error(`Cannot find 'tmbuild'`);
-            return false;
-        }
+        tmbuild_path = fs.existsSync(`${sdk_dir}/bin/tmbuild${ending}`) ? `${xwindow} ${sdk_dir}/bin/tmbuild${ending}` : `${xwindow} ${sdk_dir}/bin/${build_config}/tmbuild${ending}`;
     }
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
@@ -473,7 +431,7 @@ async function build_engine(clang, build_config, project, package) {
     core.debug(`use cache: ${cache}`);
     const libpath = get_lib_path();
     core.debug(`lib path: ${libpath}`);
-    let path = core.getInput("path");
+    const path = core.getInput("path");
     core.debug(`folder: ${path}`);
     const unit_tests_json_str = core.getInput("unit-tests");
     const unit_tests = unit_tests_json_str.length ? JSON.parse(unit_tests_json_str) : null;
@@ -505,27 +463,13 @@ async function build_engine(clang, build_config, project, package) {
             }
 
             if (!shall_run_unit_tests) {
-                let tmbuild_successfully_downloaded = false;
-                await core.group("pre tmbuild step", async () => {
-                    tmbuild_successfully_downloaded = (await get_tmbuild());
-                    core.info(`Skip build engine since we only build tmbuild ${tmbuild_successfully_downloaded}`);
-                });
-                if (!tmbuild_successfully_downloaded) {
-                    if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
-                        await report(false, "build tmbuild");
-                        return;
-                    }
-                } else {
-                    core.info("Skip tmbuild since it was already build and or latest cached!");
+                if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
+                    await report(false, "build tmbuild");
+                    return;
                 }
-                // be smart and do not build tmbuild again if tmbuild is the project!
-                if (project != "tmbuild") {
-                    if (!await core.group("build engine", async () => { return build_engine(clang, build_config, project, package); })) {
-                        await report(false, "build the engine");
-                        return;
-                    }
-                } else {
-                    core.info("Skip build engine since we only build tmbuild");
+                if (!await core.group("build engine", async () => { return build_engine(clang, build_config, project, package); })) {
+                    await report(false, "build the engine");
+                    return;
                 }
                 if (cache) {
                     // set cache:
@@ -540,23 +484,14 @@ async function build_engine(clang, build_config, project, package) {
                         }
                         // try get cache:
                         try {
-                            if (path == "./")
-                                path = process.cwd();
-                            if (fs.existsSync(`${path}/bin/tmbuild/${build_config}`)) {
-                                let id = await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
-                                utils.info(`CacheId: ${id}`);
-                                core.setOutput("tmbuild-cache-key", gh_cache.get_key("tmbuild", hash_cache_version));
-                                core.setOutput("tmbuild-cache-path", `${path}/bin/tmbuild/${build_config}`);
-                                utils.info(`Cached tmbuild key: ${gh_cache.get_key("tmbuild", hash_cache_version)}`);
-                            } else {
-                                utils.info(`Failed to cache tmbuild: ${path}/bin/tmbuild/${build_config}`);
-                            }
+                            const cwd = process.cwd();
+                            await gh_cache.set(`${cwd}/bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
+                            utils.info("Cached tmbuild!");
                         } catch (e) {
                             utils.info(`Failed to cache tmbuild ${e.message}`);
                         }
                         try {
-                            let id = await gh_cache.set(libpath, "libs", lib_hash_version);
-                            utils.info(`CacheId: ${id}`);
+                            await gh_cache.set(libpath, "libs", lib_hash_version);
                             utils.info("Cached libs!");
                         } catch (e) {
                             utils.info(`Failed to cache libs ${e.message}`);
