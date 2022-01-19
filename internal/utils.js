@@ -16,10 +16,11 @@ function error(msg) {
     core.error(`[tmbuild-action] ${msg}`);
 }
 exports.error = error;
+
 function warning(msg) {
     core.warning(`[tmbuild-action] ${msg}`);
 }
-exports.error = warning;
+exports.warning = warning;
 
 
 async function cp(src, dest) {

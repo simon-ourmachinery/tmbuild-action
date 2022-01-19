@@ -313,7 +313,7 @@ async function build_tmbuild(build_config) {
             return false;
         }
     } catch (e) {
-        utils.warnings(`${e.message}`);
+        utils.warning(`${e.message}`);
         return false;
     }
 }
