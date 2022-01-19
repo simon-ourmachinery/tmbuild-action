@@ -206,7 +206,7 @@ async function download(mode, tmbuild_repository, libpath, cache) {
                 utils.info(`cannot get cache: ${e.message}`);
             }
         } else {
-            utils.info(`Do not use cached tmbuild or libs in plugin mode`);
+            utils.info(`Do not use cached tmbuild or libs.`);
         }
 
         if (mode === 'engine' || mode === 'Engine') {
@@ -510,7 +510,7 @@ async function build_engine(clang, build_config, project, package) {
                     tmbuild_successfully_downloaded = (await get_tmbuild());
                     core.info(`Skip build engine since we only build tmbuild ${tmbuild_successfully_downloaded}`);
                 });
-                if (!tmbuild_successfully_downloaded) {
+                if (!tmbuild_successfully_downloaded || !cache) {
                     if (!await core.group("build tmbuild", async () => { return build_tmbuild(build_config); })) {
                         await report(false, "build tmbuild");
                         return;
