@@ -4,6 +4,9 @@ inputs:
   clang:
     description: "Uses clang on windows?"
     default: false
+  build-server:
+    description: "Build Server Settings"
+    default: false
   mode:
     description: 'Building the Engine or a Plugin. Values: Engine or Plugin'
     default: "Engine"

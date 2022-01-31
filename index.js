@@ -415,6 +415,8 @@ async function build_engine(clang, build_config, project, package) {
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
     const usegennode = core.getInput("gennode") === 'true';
+    const build_server = core.getInput("build-server") === 'true';
+    const usebuildserver = (build_server) ? "--premake-build-server" : "";
     const useclang = (clang) ? "--clang" : "";
     const gendoc = (usegendoc) ? "--gen-doc" : "";
     const gennode = (usegennode) ? "--gen-nodes" : "";
@@ -440,11 +442,11 @@ async function build_engine(clang, build_config, project, package) {
     options.silent = !core.isDebug();
     try {
         if (package.length != 0) {
-            await exec.exec(`${tmbuild_path} -p ${package} ${useclang}  ${gendoc} ${genhash} ${gennode} ${unit_tests}`, [], options)
+            await exec.exec(`${tmbuild_path} -p ${package} ${useclang}  ${gendoc} ${genhash} ${gennode} ${unit_tests} ${usebuildserver}`, [], options)
         } else if (project.length != 0) {
-            await exec.exec(`${tmbuild_path} -c ${build_config} --project ${project} ${useclang} ${gendoc} ${genhash} ${gennode}  ${unit_tests}`, [], options)
+            await exec.exec(`${tmbuild_path} -c ${build_config} --project ${project} ${useclang} ${gendoc} ${genhash} ${gennode}  ${unit_tests}  ${usebuildserver}`, [], options)
         } else {
-            await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}  ${unit_tests}`, [], options)
+            await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}  ${unit_tests}  ${usebuildserver}`, [], options)
         }
         return true;
     } catch (e) {
