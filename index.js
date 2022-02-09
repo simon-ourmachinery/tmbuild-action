@@ -291,7 +291,7 @@ async function build_tmbuild(build_config) {
             await exec.exec(`make tmbuild config=${build_config.toLowerCase()}_linux`, [], options)
         } else {
             if (os.platform() == "win32") {
-                await exec.exec(`msbuild.exe "build/tmbuild/tmbuild.vcxproj" /p:Configuration="${build_config} Win64" /p:Platform=x64`, [], options)
+                await exec.exec(`msbuild.exe "build/tmbuild/tmbuild.vcxproj" /p:Configuration="${build_config} x64" /p:Platform=x64`, [], options)
             } else {
                 if (os.platform() == "darwin") {
                     await exec.exec(`xcodebuild -project build/tmbuild/tmbuild.xcodeproj -configuration ${build_config}`, [], options)
