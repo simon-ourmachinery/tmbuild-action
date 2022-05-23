@@ -41,6 +41,8 @@ inputs:
     default: true
   tests:
     default: true
+  clean:
+    default: false
   path:
     default: "./"
   unit-tests:

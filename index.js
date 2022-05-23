@@ -415,6 +415,7 @@ async function build_engine(clang, build_config, project, package) {
     const usegendoc = core.getInput("gendoc") === 'true';
     const usegenhash = core.getInput("genhash") === 'true';
     const usegennode = core.getInput("gennode") === 'true';
+    const useclean = core.getInput("clean") === 'true';
     const build_server = core.getInput("build-server") === 'true';
     const usebuildserver = (build_server) ? "--premake-build-server" : "";
     const useclang = (clang) ? "--clang" : "";
@@ -422,6 +423,7 @@ async function build_engine(clang, build_config, project, package) {
     const gennode = (usegennode) ? "--gen-nodes" : "";
     const genhash = (usegenhash) ? "--gen-hash" : "";
     const unit_tests = (!tests) ? "--no-unit-test" : "";
+    const clean = (!useclean) ? "--clean" : "";
 
     // setup logging:
     const options = {};
@@ -442,11 +444,11 @@ async function build_engine(clang, build_config, project, package) {
     options.silent = !core.isDebug();
     try {
         if (package.length != 0) {
-            await exec.exec(`${tmbuild_path} -p ${package} ${useclang}  ${gendoc} ${genhash} ${gennode} ${unit_tests} ${usebuildserver}`, [], options)
+            await exec.exec(`${tmbuild_path} -p ${package} ${useclang} ${clean} ${gendoc} ${genhash} ${gennode} ${unit_tests} ${usebuildserver}`, [], options)
         } else if (project.length != 0) {
-            await exec.exec(`${tmbuild_path} -c ${build_config} --project ${project} ${useclang} ${gendoc} ${genhash} ${gennode}  ${unit_tests}  ${usebuildserver}`, [], options)
+            await exec.exec(`${tmbuild_path} -c ${build_config} --project ${project} ${clean} ${useclang} ${gendoc} ${genhash} ${gennode}  ${unit_tests}  ${usebuildserver}`, [], options)
         } else {
-            await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang}  ${gendoc} ${genhash} ${gennode}  ${unit_tests}  ${usebuildserver}`, [], options)
+            await exec.exec(`${tmbuild_path} -c ${build_config} ${useclang} ${clean}  ${gendoc} ${genhash} ${gennode}  ${unit_tests}  ${usebuildserver}`, [], options)
         }
         return true;
     } catch (e) {
