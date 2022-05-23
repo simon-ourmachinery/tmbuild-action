@@ -423,7 +423,7 @@ async function build_engine(clang, build_config, project, package) {
     const gennode = (usegennode) ? "--gen-nodes" : "";
     const genhash = (usegenhash) ? "--gen-hash" : "";
     const unit_tests = (!tests) ? "--no-unit-test" : "";
-    const clean = (!useclean) ? "--clean" : "";
+    const clean = (useclean) ? "--clean" : "";
 
     // setup logging:
     const options = {};
