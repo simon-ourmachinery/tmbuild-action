@@ -305,8 +305,8 @@ async function build_tmbuild(build_config) {
         if (path == "./") {
             local_path = process.cwd();
         }
-        if (fs.existsSync(`${local_path}/bin/${build_config}/tmbuild${ending}`)) {
-            await utils.cp(`${local_path}/bin/${build_config}/tmbuild${ending}`, `${local_path}/bin/tmbuild/${build_config}`);
+        if (fs.existsSync(`${local_path}/tmbuild_action/${build_config}/tmbuild${ending}`)) {
+            await utils.cp(`${local_path}/bin/${build_config}/tmbuild${ending}`, `${local_path}/tmbuild_action/${build_config}`);
             return true;
         } else {
             utils.info(`Path does not exist! ${local_path}/bin/${build_config}/tmbuild${ending}`);
@@ -372,6 +372,8 @@ async function find_tmbuild() {
     // we check first: the sdk dir:
     let paths = [
         `tmbuild${ending}`,
+        `/tmbuild_action/tmbuild${ending}`,
+        `${sdk_dir}/tmbuild_action/tmbuild${ending}`,
         `${sdk_dir}/tmbuild${ending}`,
         `${sdk_dir}/bin/tmbuild${ending}`,
         `/bin/Debug/tmbuild${ending}`,
@@ -401,9 +403,9 @@ async function build_engine(clang, build_config, project, package) {
     let tmbuild_path = "";
     if ((mode === 'engine' || mode === 'Engine')) {
         if (path == "./") {
-            tmbuild_path = `${xwindow} ${cwd}/bin/tmbuild/${build_config}/tmbuild${ending}`;
+            tmbuild_path = `${xwindow} ${cwd}/tmbuild_action/${build_config}/tmbuild${ending}`;
         } else {
-            tmbuild_path = `${xwindow} ${path}/bin/tmbuild/${build_config}/tmbuild${ending}`;
+            tmbuild_path = `${xwindow} ${path}/tmbuild_action/${build_config}/tmbuild${ending}`;
         }
     } else {
         tmbuild_path = await find_tmbuild();
@@ -550,14 +552,14 @@ async function build_engine(clang, build_config, project, package) {
                         try {
                             if (path == "./")
                                 path = process.cwd();
-                            if (fs.existsSync(`${path}/bin/tmbuild/${build_config}`)) {
-                                let id = await gh_cache.set(`${path}/bin/tmbuild/${build_config}`, `tmbuild`, hash_cache_version);
+                            if (fs.existsSync(`${path}/tmbuild_action/${build_config}`)) {
+                                let id = await gh_cache.set(`${path}/tmbuild_action/${build_config}`, `tmbuild`, hash_cache_version);
                                 utils.info(`CacheId: ${id}`);
                                 core.setOutput("tmbuild-cache-key", gh_cache.get_key("tmbuild", hash_cache_version));
-                                core.setOutput("tmbuild-cache-path", `${path}/bin/tmbuild/${build_config}`);
+                                core.setOutput("tmbuild-cache-path", `${path}/tmbuild_action/${build_config}`);
                                 utils.info(`Cached tmbuild key: ${gh_cache.get_key("tmbuild", hash_cache_version)}`);
                             } else {
-                                utils.info(`Failed to cache tmbuild: ${path}/bin/tmbuild/${build_config}`);
+                                utils.info(`Failed to cache tmbuild: ${path}/tmbuild_action/${build_config}`);
                             }
                         } catch (e) {
                             utils.info(`Failed to cache tmbuild ${e.message}`);
