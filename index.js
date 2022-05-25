@@ -305,7 +305,7 @@ async function build_tmbuild(build_config) {
         if (path == "./") {
             local_path = process.cwd();
         }
-        if (fs.existsSync(`${local_path}/tmbuild_action/${build_config}/tmbuild${ending}`)) {
+        if (fs.existsSync(`${local_path}/bin/${build_config}/tmbuild${ending}`)) {
             await utils.cp(`${local_path}/bin/${build_config}/tmbuild${ending}`, `${local_path}/tmbuild_action/${build_config}`);
             return true;
         } else {
