@@ -443,10 +443,6 @@ async function build_engine(clang, build_config, project, package) {
     if (path != "./")
         options.cwd = path;
 
-    if (os.platform() == "win32") {
-        await exec.exec(`TAKEOWN /r /d Y /F bin`, [], options);
-    }
-
     options.silent = !core.isDebug();
     try {
         if (package.length != 0) {
