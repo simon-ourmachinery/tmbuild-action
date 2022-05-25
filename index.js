@@ -441,6 +441,10 @@ async function build_engine(clang, build_config, project, package) {
     if (path != "./")
         options.cwd = path;
 
+    if (os.platform() == "win32") {
+        await exec.exec(`TAKEOWN /r /d Y /F ./bin`, [], options);
+    }
+
     options.silent = !core.isDebug();
     try {
         if (package.length != 0) {
@@ -509,7 +513,7 @@ async function build_engine(clang, build_config, project, package) {
             }
 
             if (!shall_run_unit_tests) {
-                let tmbuild_successfully_downloaded = false;
+                let tmbuild_successfully_downloaded = true;
                 await core.group("pre tmbuild step", async () => {
                     tmbuild_successfully_downloaded = (await get_tmbuild());
                     core.info(`Skip build engine since we only build tmbuild ${tmbuild_successfully_downloaded}`);
