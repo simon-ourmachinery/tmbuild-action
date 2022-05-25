@@ -442,6 +442,7 @@ async function build_engine(clang, build_config, project, package) {
         options.cwd = path;
 
     if (os.platform() == "win32") {
+        await exec.exec(`ls`, [], options);
         await exec.exec(`TAKEOWN /r /d Y /F bin`, [], options);
     }
 
