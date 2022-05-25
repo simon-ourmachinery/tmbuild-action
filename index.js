@@ -155,15 +155,15 @@ async function get_tmbuild() {
     const utils_dir = `${path}utils`;
     const build_config = core.getInput("config");
     const ending = (os.platform() == "win32") ? ".exe" : "";
-    if (!fs.existsSync(`${path}bin/tmbuild/${build_config}/tmbuild${ending}`)) {
+    if (!fs.existsSync(`${path}/tmbuild_action/${build_config}/tmbuild${ending}`)) {
         const hash_cache_version = await utils.hash(`${utils_dir}/tmbuild/tmbuild.c`);
         try {
             if (path == "./")
                 path = process.cwd();
-            let ret = await gh_cache.get(`${path}/bin/tmbuild/${build_config}`, "tmbuild", hash_cache_version);
+            let ret = await gh_cache.get(`${path}/tmbuild_action/${build_config}`, "tmbuild", hash_cache_version);
             utils.info(`Path: ${ret}`);
             core.setOutput("tmbuild-cache-key", gh_cache.get_key("tmbuild", hash_cache_version));
-            core.setOutput("tmbuild-cache-path", `${path}/bin/tmbuild/${build_config}`);
+            core.setOutput("tmbuild-cache-path", `${path}/tmbuild_action/${build_config}`);
             return ret != undefined;
         } catch (e) {
             utils.info(`Need to re-build tmbuild`);
@@ -171,7 +171,7 @@ async function get_tmbuild() {
             return false;
         }
     } else {
-        utils.info(`file: ${path}bin/tmbuild/${build_config}/tmbuild${ending} exists!`);
+        utils.info(`file: ${path}/tmbuild_action/${build_config}/tmbuild${ending} exists!`);
         return true;
     }
 }
